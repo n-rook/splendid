@@ -2,6 +2,10 @@ package com.nrook.splendid.rules
 
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Multiset
+import com.google.common.collect.Multisets
+import javafx.scene.control.Tab
+import kotlin.math.min
 
 /**
  * A single player's game area.
@@ -17,6 +21,106 @@ data class Tableau(
   val victoryPoints
     get() = developments.map { it.victoryPoints }.sum() +
         nobles.map { it.victoryPoints }.sum()
+
+  /**
+   * Returns how many free resources of this type are available on the tableau.
+   */
+  fun developmentResources(color: Color): Int {
+    return developments.filter { it.color == color }.count()
+  }
+
+  /**
+   * Returns whether a given development card can be purchased.
+   */
+  fun canAfford(d: DevelopmentCard): Boolean {
+    var goldLeft = chips.count(ChipColor.GOLD)
+
+    for (entry in d.price.entrySet()) {
+      val availableResources = developmentResources(entry.element) +
+          chips.count(entry.element.toChipColor())
+      val goldNecessary = entry.count - availableResources
+      if (goldNecessary > 0) {
+        goldLeft -= goldNecessary
+        if (goldLeft < 0) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
+  /**
+   * Returns the unique way to buy a development card using the least gold chips.
+   */
+  fun minimalPrice(d: DevelopmentCard): ImmutableMultiset<ChipColor> {
+    var goldLeft = chips.count(ChipColor.GOLD)
+
+    val chipPrice: ImmutableMultiset.Builder<ChipColor> = ImmutableMultiset.builder()
+    for (entry in d.price.entrySet()) {
+      val chipsNecessary = entry.count - developmentResources(entry.element)
+      if (chipsNecessary <= 0) {
+        continue
+      }
+
+      val matchingChipsAvailable = chips.count(entry.element.toChipColor())
+      if (matchingChipsAvailable >= chipsNecessary) {
+        chipPrice.addCopies(entry.element.toChipColor(), chipsNecessary)
+      } else {
+        val goldToUse = chipsNecessary - matchingChipsAvailable
+        chipPrice.addCopies(entry.element.toChipColor(), matchingChipsAvailable)
+        chipPrice.addCopies(ChipColor.GOLD, goldToUse)
+        goldLeft -= goldToUse
+        if (goldLeft < 0) {
+          throw Error("No minimal price available; can't afford card")
+        }
+      }
+    }
+
+    return chipPrice.build()
+  }
+
+  /**
+   * Add additional chips to this tableau.
+   */
+  fun addChips(addend: Multiset<ChipColor>): Tableau {
+    // TODO Consider inlining
+    return toBuilder().addChips(addend).build()
+  }
+
+  fun toBuilder(): Builder {
+    return Builder(chips, developments, nobles, reservedDevelopments)
+  }
+
+  class Builder(
+      private var chips: ImmutableMultiset<ChipColor>,
+      private var developments: ImmutableSet<DevelopmentCard>,
+      private var nobles: ImmutableSet<Noble>,
+      private var reservedDevelopments: ImmutableSet<DevelopmentCard>) {
+    fun build(): Tableau {
+      return Tableau(chips, developments, nobles, reservedDevelopments)
+    }
+
+    fun addChips(addend: Multiset<ChipColor>): Builder {
+      chips = ImmutableMultiset.copyOf(Multisets.sum(chips, addend))
+      return this
+    }
+
+    fun subtractChips(subtrahend: Multiset<ChipColor>): Builder {
+      if (!Multisets.containsOccurrences(chips, subtrahend)) {
+        throw Error("Does not contain subtrahend")
+      }
+      chips = ImmutableMultiset.copyOf(Multisets.difference(chips, subtrahend))
+      return this
+    }
+
+    fun addDevelopment(d: DevelopmentCard): Builder {
+      developments = ImmutableSet.builder<DevelopmentCard>()
+          .addAll(developments)
+          .add(d)
+          .build()
+      return this
+    }
+  }
 }
 
 val EMPTY_TABLEAU = Tableau(

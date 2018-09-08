@@ -9,5 +9,9 @@ enum class ChipColor {
   RED,
   WHITE,
   BLACK,
-  GOLD
+  GOLD;
+
+  fun toColor(): Color {
+    return COLOR_TO_CHIP_COLOR.inverse()[this] ?: throw Error("Cannot convert GOLD to chip")
+  }
 }

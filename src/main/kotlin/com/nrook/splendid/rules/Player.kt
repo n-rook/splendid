@@ -7,5 +7,12 @@ package com.nrook.splendid.rules
  */
 enum class Player {
   ONE,
-  TWO
+  TWO;
+
+  fun opponent(): Player {
+    return when(this) {
+      ONE -> Player.TWO
+      TWO -> Player.ONE
+    }
+  }
 }

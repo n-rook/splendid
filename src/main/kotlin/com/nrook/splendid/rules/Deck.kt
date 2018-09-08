@@ -18,6 +18,10 @@ data class Deck(val cards: ImmutableList<DevelopmentCard>) {
         Deck(cards.subList(0, cards.size - 1))
     )
   }
+
+  fun isEmpty(): Boolean {
+    return cards.isEmpty()
+  }
 }
 
 data class DrawnCardResult(val card: DevelopmentCard, val rest: Deck)
