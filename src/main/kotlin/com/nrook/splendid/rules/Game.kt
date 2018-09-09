@@ -143,11 +143,14 @@ data class Game(
     // TODO: Rewrite Developments to contain Decks too, and make this a method there
     val row = Row.values().firstOrNull { developments.rows.containsEntry(it, move.card) }
         ?: throw Error("Cannot find development card in common area")
+
     val (newDeck, newRow) = drawReplacement(move.card, decks[row]!!, developments.rows[row])
-    val newDecks = ImmutableMap.builder<Row, Deck>()
-        .putAll(decks)
-        .put(row, newDeck)
-        .build()
+    val newDecks = kotlin.run {
+      val map = HashMap(decks)
+      map[row] = newDeck
+      ImmutableMap.copyOf(map)
+    }
+
     val newDevelopments = developments.replaceRow(row, newRow)
 
     return Game(

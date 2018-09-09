@@ -6,10 +6,10 @@ import com.google.common.collect.ImmutableBiMap
  * The colors required to buy resources.
  */
 enum class Color {
-  GREEN,
-  BLUE,
-  RED,
   WHITE,
+  BLUE,
+  GREEN,
+  RED,
   BLACK;
 
   fun toChipColor(): ChipColor {
