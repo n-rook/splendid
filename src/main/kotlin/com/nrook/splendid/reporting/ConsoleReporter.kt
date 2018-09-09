@@ -5,13 +5,31 @@ import com.nrook.splendid.rules.Color
 import com.nrook.splendid.rules.DevelopmentCard
 import com.nrook.splendid.rules.Game
 import com.nrook.splendid.rules.Player
+import com.nrook.splendid.rules.Row
 import com.nrook.splendid.rules.Turn
 import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
 import com.nrook.splendid.rules.moves.TakeTokens
 
 class ConsoleReporter {
+  fun describeGame(g: Game) {
+    val string = StringBuilder()
+    for (row in Row.values().reversed()) {
+      string.appendln("Row $row")
+      for (card in g.developments.rows[row]) {
+        string.appendln("  - ${describeCard(card)}")
+      }
+    }
+    val chipInfo = g.chips.entrySet().map { "${it.count}${encodeToken(it.element)}" }
+        .joinToString(" ")
+    string.appendln("Chips: $chipInfo")
+    print(string)
+  }
+
   fun reportMove(g: Game, m: Move) {
+    describeGame(g)
+    println()
+
     val moveDescription = when (m) {
       is TakeTokens -> "Took tokens ${tokensToList(m.tokens)}"
       is BuyDevelopment -> {
@@ -50,7 +68,7 @@ private fun encodeColor(c: Color): String {
 }
 
 private fun encodeToken(c: ChipColor): String {
-  val characterCode = when(c) {
+  return when(c) {
     ChipColor.GOLD -> "X"
     ChipColor.GREEN -> "G"
     ChipColor.BLACK -> "B"
@@ -58,5 +76,4 @@ private fun encodeToken(c: ChipColor): String {
     ChipColor.RED -> "R"
     ChipColor.BLUE -> "B"
   }
-  return "$characterCode"
 }
