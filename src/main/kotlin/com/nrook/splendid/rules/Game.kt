@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSetMultimap
+import com.google.common.collect.Multiset
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
 import com.nrook.splendid.rules.moves.BuyDevelopment
@@ -65,9 +66,15 @@ data class Game(
         .build()
   }
 
+  /**
+   * Returns available chips other than the gold ones.
+   */
+  fun regularChips(): Multiset<ChipColor> {
+    return Multisets.filter(chips) { it: ChipColor? -> it != ChipColor.GOLD }
+  }
+
   fun take3ChipsMoves(): ImmutableList<TakeTokens> {
-    val availableChips = ImmutableSet.copyOf(
-        chips.entrySet().map { it.element }.filter { it != ChipColor.GOLD })
+    val availableChips = ImmutableSet.copyOf(regularChips())
     if (availableChips.isEmpty()) {
       return ImmutableList.of()
     }
@@ -81,7 +88,7 @@ data class Game(
   }
 
   fun take2IdenticalChipsMoves(): ImmutableList<TakeTokens> {
-    val availableChips = chips.entrySet().filter { it.count >= 2 }.map { it.element }
+    val availableChips = regularChips().entrySet().filter { it.count >= 2 }.map { it.element }
     return ImmutableList.copyOf(availableChips.map { TakeTokens(ImmutableMultiset.of(it, it)) })
   }
 
