@@ -6,14 +6,14 @@ import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.io.Resources
 import com.nrook.splendid.rules.Color
 import com.nrook.splendid.rules.DevelopmentCard
+import com.nrook.splendid.rules.Noble
 import com.nrook.splendid.rules.Row
 import java.nio.charset.Charset
 
 // Thanks to Raph Moimoi for originally compiling this list, and Alwin Wiewiorkafor correcting it
 
 fun loadComponentsFromFile(): GameComponents {
-  // TODO: Add nobles
-  return GameComponents(loadDevelopmentCardsFromFile(), ImmutableSet.of())
+  return GameComponents(loadDevelopmentCardsFromFile(), loadNoblesFromFile())
 }
 
 private fun loadDevelopmentCardsFromFile(): ImmutableSetMultimap<Row, DevelopmentCard> {
@@ -47,4 +47,29 @@ private fun parseDevelopmentFromLine(line: String): Pair<Row, DevelopmentCard> {
       price.build()
   )
   return Pair(row, card)
+}
+
+private fun loadNoblesFromFile(): ImmutableSet<Noble> {
+  val cards = ImmutableSet.builder<Noble>()
+
+  val resource = Resources.getResource("nobles.csv")
+  for (line in Resources.readLines(resource, Charset.forName("UTF-8"))) {
+    cards.add(parseNobleFromLine(line))
+  }
+
+  return cards.build()
+}
+
+private fun parseNobleFromLine(line: String): Noble {
+  val split = line.split(",")
+
+  val requirements = ImmutableMultiset.builder<Color>()
+  for (color in Color.values()) {
+    val stringCount = split[color.ordinal]
+    if (!stringCount.isEmpty()) {
+      requirements.addCopies(color, stringCount.toInt())
+    }
+  }
+
+  return Noble(3, requirements.build())
 }

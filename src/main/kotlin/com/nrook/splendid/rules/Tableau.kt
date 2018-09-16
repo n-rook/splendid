@@ -23,6 +23,17 @@ data class Tableau(
         nobles.map { it.victoryPoints }.sum()
 
   /**
+   * A multiset containing how many free resources of each type are available.
+   */
+  val developmentResources: ImmutableMultiset<Color> by lazy {
+    val builder = ImmutableMultiset.builder<Color>()
+    for (d in developments) {
+      builder.add(d.color)
+    }
+    return@lazy builder.build()
+  }
+
+  /**
    * Returns how many free resources of this type are available on the tableau.
    */
   fun developmentResources(color: Color): Int {
@@ -47,6 +58,15 @@ data class Tableau(
       }
     }
     return true
+  }
+
+  /**
+   * Returns whether, after purchasing this card, the player will be visited by this noble.
+   */
+  fun receivesVisit(newDevelopment: DevelopmentCard, n: Noble): Boolean {
+    val newDevelopmentResources = Multisets.sum(
+        developmentResources, ImmutableMultiset.of(newDevelopment.color))
+    return Multisets.containsOccurrences(newDevelopmentResources, n.requirements)
   }
 
   /**

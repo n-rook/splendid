@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.ListMultimap
 import com.nrook.splendid.rules.DevelopmentCard
 import com.nrook.splendid.rules.Game
+import com.nrook.splendid.rules.NOBLE_COUNT
 import com.nrook.splendid.rules.Noble
 import com.nrook.splendid.rules.OPEN_DEVELOPMENT_CARD_COUNT
 import com.nrook.splendid.rules.Row
@@ -27,10 +28,11 @@ data class GameComponents(
       }
       builder.build()
     }
+    val nobles = ImmutableSet.copyOf(shuffle(nobles, random).subList(0, NOBLE_COUNT))
 
     val (startingCards, decks) = dealOutDevelopments(shuffledDevelopments)
 
-    return setupNewGame(startingCards, decks, ImmutableSet.of()) // TODO nobles
+    return setupNewGame(startingCards, decks, nobles) // TODO nobles
   }
 
   /**
@@ -38,7 +40,8 @@ data class GameComponents(
    *
    * This is deterministic: it always returns the same game given the same input.
    */
-  fun startFixedGame(startingDevelopments: Collection<DevelopmentCard>): Game {
+  fun startFixedGame(startingDevelopments: Collection<DevelopmentCard>,
+                     nobles: Collection<Noble>): Game {
     val byRow = run {
       val builder = ImmutableSetMultimap.Builder<Row, DevelopmentCard>()
       for (d in startingDevelopments) {
@@ -64,7 +67,7 @@ data class GameComponents(
       builder.build()
     }
 
-    return setupNewGame(developments, decks, ImmutableSet.of()) // TODO nobles
+    return setupNewGame(developments, decks, ImmutableSet.copyOf(nobles))
   }
 }
 

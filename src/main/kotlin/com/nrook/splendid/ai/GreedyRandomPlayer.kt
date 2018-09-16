@@ -18,6 +18,9 @@ class GreedyRandomPlayer(val random: Random): SynchronousAi {
       is BuyDevelopment -> it.card.victoryPoints
       else -> 0
     } }
+    if (moves.isEmpty()) {
+      throw Error("No legal moves. This should not be possible")
+    }
 
     val chosenMove = bestMoves.asList()[random.nextInt(bestMoves.size)]
     return chosenMove

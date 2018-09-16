@@ -16,6 +16,11 @@ val MAX_TOKENS = 10
 val NOBLE_COUNT = 3
 
 /**
+ * The number of victory points granted by each noble.
+ */
+val NOBLE_VICTORY_POINTS = 3
+
+/**
  * The number of development cards per row.
  */
 val OPEN_DEVELOPMENT_CARD_COUNT = 4

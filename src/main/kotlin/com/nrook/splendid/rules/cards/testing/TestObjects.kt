@@ -3,9 +3,11 @@ package com.nrook.splendid.rules.cards.testing
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.ImmutableSetMultimap
+import com.nrook.splendid.rules.ChipColor
 import com.nrook.splendid.rules.Color
 import com.nrook.splendid.rules.DevelopmentCard
 import com.nrook.splendid.rules.Game
+import com.nrook.splendid.rules.Noble
 import com.nrook.splendid.rules.Row
 import com.nrook.splendid.rules.cards.loadComponentsFromFile
 
@@ -38,8 +40,14 @@ private val testStartingDevelopments: ImmutableList<DevelopmentCard> =
             3, Color.BLACK, Color.WHITE, 3, Color.BLUE, 3, Color.GREEN, 5, Color.RED, 3))
         .build()
 
+private val testStartingNobles = ImmutableList.of(
+    createNoble(3, Color.BLACK, Color.RED, Color.WHITE),
+    createNoble(3, Color.BLACK, Color.WHITE),
+    createNoble(3, Color.BLACK, Color.RED, Color.GREEN)
+)
+
 private val testGame: Game by lazy {
-  loadComponentsFromFile().startFixedGame(testStartingDevelopments)
+  loadComponentsFromFile().startFixedGame(testStartingDevelopments, testStartingNobles)
 }
 
 private fun createDevelopmentCard(vp: Int, color: Color, c1: Color, p1: Int): DevelopmentCard {
@@ -77,6 +85,23 @@ private fun createDevelopmentCard(vp: Int, color: Color, c1: Color, p1: Int, c2:
       .addCopies(c4, p4)
       .build()
   return DevelopmentCard(vp, color, price)
+}
+
+private fun createNoble(vp: Int, c1: Color, c2: Color): Noble {
+  return Noble(vp,
+      ImmutableMultiset.builder<Color>()
+          .addCopies(c1, 4)
+          .addCopies(c2, 4)
+          .build())
+}
+
+private fun createNoble(vp: Int, c1: Color, c2: Color, c3: Color): Noble {
+  return Noble(vp,
+      ImmutableMultiset.builder<Color>()
+          .addCopies(c1, 3)
+          .addCopies(c2, 3)
+          .addCopies(c3, 3)
+          .build())
 }
 
 fun createStandardTestGame(): Game {

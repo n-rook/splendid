@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.nrook.splendid.rules.cards.testing.createStandardTestGame
+import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 import com.nrook.splendid.rules.testing.assertChips
 import org.junit.Before
@@ -120,5 +121,22 @@ class GameTest {
         5, 1, 3, 2, 0, 4)
     assertChips(returnedChips.tableaux[Player.ONE]!!.chips,
         0, 3, 1, 2, 4, 0)
+  }
+
+  @Test
+  fun buyDevelopmentCard() {
+    val gameWithChips = game.takeChips(
+        Player.ONE, ImmutableMultiset.of(ChipColor.WHITE, ChipColor.WHITE, ChipColor.WHITE))
+    val developmentCardMoves = gameWithChips.moves().filterIsInstance(BuyDevelopment::class.java)
+
+    Truth.assertThat(developmentCardMoves).hasSize(1)
+    val move = developmentCardMoves.single()
+    Truth.assertThat(move.card.color).isEqualTo(Color.RED)
+    Truth.assertThat(move.card.price).isEqualTo(
+        ImmutableMultiset.of(Color.WHITE, Color.WHITE, Color.WHITE))
+    Truth.assertThat(move.card.victoryPoints).isEqualTo(0)
+
+    Truth.assertThat(move.price).containsExactly(ChipColor.WHITE, ChipColor.WHITE, ChipColor.WHITE)
+    Truth.assertThat(move.noble).isNull()
   }
 }

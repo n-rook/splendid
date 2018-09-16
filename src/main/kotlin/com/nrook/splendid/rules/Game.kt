@@ -112,7 +112,22 @@ data class Game(
     val tableau: Tableau = tableaux[turn.player]!!
     val buyOpenCards = ImmutableList.copyOf(
         developments.filter { tableau.canAfford(it) }
-            .map { BuyDevelopment(it, tableau.minimalPrice(it)) })
+            .flatMap {
+              val minimalPrice = tableau.minimalPrice(it)
+
+              val possibleNobles = nobles.filter {
+                n: Noble -> tableau.receivesVisit(it, n)
+              }
+              if (possibleNobles.isEmpty()) {
+                return@flatMap ImmutableList.of<BuyDevelopment>(
+                    BuyDevelopment(it, minimalPrice, null)
+                )
+              } else {
+                return@flatMap possibleNobles.map { n: Noble -> BuyDevelopment(it, minimalPrice, n) }
+              }
+            }
+    )
+//            .map { BuyDevelopment(it, tableau.minimalPrice(it)) })
 
     // TODO: Present opportunity to spend extra gold for no reason
     // TODO: Buy reserved development cards

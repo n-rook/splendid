@@ -4,6 +4,7 @@ import com.nrook.splendid.rules.ChipColor
 import com.nrook.splendid.rules.Color
 import com.nrook.splendid.rules.DevelopmentCard
 import com.nrook.splendid.rules.Game
+import com.nrook.splendid.rules.Noble
 import com.nrook.splendid.rules.Player
 import com.nrook.splendid.rules.Row
 import com.nrook.splendid.rules.Turn
@@ -42,8 +43,11 @@ class ConsoleReporter {
         val priceDescription = if (m.price.isEmpty())
           "for free"
         else "with ${tokensToList(m.price)}"
+        val nobleDescription = if (m.noble == null)
+          ""
+        else " and visited by ${describeNoble(m.noble)}"
 
-        "Bought card: ${describeCard(m.card)} $priceDescription"
+        "Bought card: ${describeCard(m.card)} $priceDescription$nobleDescription"
       }
       else -> "Unknown move $m"
     }
@@ -63,6 +67,11 @@ private fun describeCard(d: DevelopmentCard): String {
   val price = d.price.entrySet().joinToString(
       separator = ", ", transform = {e -> "${e.count}${encodeColor(e.element)}"})
   return "${encodeColor(d.color)} (${d.victoryPoints}): $price"
+}
+
+private fun describeNoble(n: Noble): String {
+  val values = n.requirements.elementSet().joinToString(" ", transform = { encodeColor(it)})
+  return "N[$values]"
 }
 
 private fun tokensToList(t: Iterable<ChipColor>): String {

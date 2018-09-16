@@ -3,6 +3,7 @@ package com.nrook.splendid.rules.moves
 import com.google.common.collect.ImmutableMultiset
 import com.nrook.splendid.rules.ChipColor
 import com.nrook.splendid.rules.DevelopmentCard
+import com.nrook.splendid.rules.Noble
 
 /**
  * A move to be made.
@@ -39,7 +40,10 @@ data class ReserveDevelopment(val card: DevelopmentCard): Move
  * @property price The chips spent to acquire the card. Note that this price does not include
  *  resources the player has from their own developments.
  */
-data class BuyDevelopment(val card: DevelopmentCard, val price: ImmutableMultiset<ChipColor>): Move
+data class BuyDevelopment(
+    val card: DevelopmentCard,
+    val price: ImmutableMultiset<ChipColor>,
+    val noble: Noble?): Move
 
 // To implement:
 // You can only have ten tokens at once, so TakeTokens and ReserveDevelopment should specify the

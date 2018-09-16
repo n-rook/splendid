@@ -1,12 +1,12 @@
 package com.nrook.splendid.rules
 
 import com.google.common.collect.ComparisonChain
-import com.google.common.collect.Multiset
+import com.google.common.collect.ImmutableMultiset
 
 /**
  * A development card to be collected.
  */
-data class DevelopmentCard(val victoryPoints: Int, val color: Color, val price: Multiset<Color>):
+data class DevelopmentCard(val victoryPoints: Int, val color: Color, val price: ImmutableMultiset<Color>):
     Comparable<DevelopmentCard> {
 
   // Sometimes, it's convenient to be able to sort development cards.
