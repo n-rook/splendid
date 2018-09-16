@@ -8,10 +8,10 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Multisets
-import com.google.common.collect.Sets
 import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
 import com.nrook.splendid.rules.moves.TakeTokens
+import kotlin.math.max
 
 /**
  * Game rules and state.
@@ -59,6 +59,8 @@ data class Game(
    * Returns a list of all legal moves in this position.
    */
   fun moves(): ImmutableList<Move> {
+    // NOTE: There is an issue where moves() is sometimes zero.
+    // This is because we have not yet implemented "take some chips and put them back".
     return ImmutableList.builder<Move>()
         .addAll(take3ChipsMoves())
         .addAll(take2IdenticalChipsMoves())
@@ -74,22 +76,20 @@ data class Game(
   }
 
   fun take3ChipsMoves(): ImmutableList<TakeTokens> {
-    val availableChips = ImmutableSet.copyOf(regularChips())
-    if (availableChips.isEmpty()) {
-      return ImmutableList.of()
-    }
-    if (availableChips.size <= 3) {
-      return ImmutableList.of(TakeTokens(ImmutableMultiset.copyOf(availableChips)))
-    }
+    val availableChips = ImmutableMultiset.copyOf(regularChips())
+    val playerChips = tableaux[turn.player]!!.chips
+    val giveCount: Int = max(playerChips.size + 3 - MAX_TOKENS, 0)
+
+    val options = takeDifferentChips(availableChips, playerChips, 3, giveCount)
     return ImmutableList.copyOf(
-        Sets.combinations(availableChips, 3)
-            .map { TakeTokens(ImmutableMultiset.copyOf(it)) }
-    )
+        options.map { TakeTokens(it.take, it.give) })
   }
 
   fun take2IdenticalChipsMoves(): ImmutableList<TakeTokens> {
     val availableChips = regularChips().entrySet().filter { it.count >= 2 }.map { it.element }
-    return ImmutableList.copyOf(availableChips.map { TakeTokens(ImmutableMultiset.of(it, it)) })
+    return ImmutableList.copyOf(availableChips.map {
+      // TODO Handle giving back
+      TakeTokens(ImmutableMultiset.of(it, it), ImmutableMultiset.of()) })
   }
 
   fun buyDevelopmentCardMoves(): ImmutableList<BuyDevelopment> {
@@ -122,11 +122,18 @@ data class Game(
     val actingTableau = tableaux[actor]!!
 
     if (!Multisets.containsOccurrences(chips, move.tokens)) {
-      throw Error("Illegal takeTokens move")
+      throw Error("Illegal takeTokens move: tokens not present to be taken")
+    }
+    if (!Multisets.containsOccurrences(actingTableau.chips, move.returnedTokens)) {
+      throw Error("Illegal takeTokens move: tokens not present to be returned")
     }
 
-    val newCommonChips = ImmutableMultiset.copyOf(Multisets.difference(chips, move.tokens))
-    val newTableau = actingTableau.addChips(move.tokens)
+    val newCommonChips = ImmutableMultiset.copyOf(
+        Multisets.sum(Multisets.difference(chips, move.tokens), move.returnedTokens))
+    val newTableau = actingTableau.toBuilder()
+        .addChips(move.tokens)
+        .subtractChips(move.returnedTokens)
+        .build()
     return Game(
         turn.next(),
         developments,
@@ -135,6 +142,29 @@ data class Game(
         ImmutableMap.of(
             actor, newTableau,
             actor.opponent(), tableaux[actor.opponent()]!!),
+        decks)
+  }
+
+  /**
+   * Give chips from the central store to a given player.
+   */
+  fun takeChips(player: Player, chipsToTake: ImmutableMultiset<ChipColor>): Game {
+    val receivingTableau = tableaux[player]!!
+
+    if (!Multisets.containsOccurrences(chips, chipsToTake)) {
+      throw Error("Illegal takeTokens move: tokens not present to be taken")
+    }
+
+    val newCommonChips = Multisets.difference(chips, chipsToTake)
+    val newTableau = receivingTableau.addChips(chipsToTake)
+    return Game(
+        turn,
+        developments,
+        nobles,
+        ImmutableMultiset.copyOf(newCommonChips),
+        ImmutableMap.of(
+            player, newTableau,
+            player.opponent(), tableaux[player.opponent()]!!),
         decks)
   }
 
@@ -197,7 +227,7 @@ fun setupNewGame(
   }
 
   return Game(
-      Turn(1, Player.ONE),
+      Turn.START,
       Developments(startingDevelopments),
       nobles,
       STARTING_CHIPS,

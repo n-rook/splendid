@@ -17,8 +17,14 @@ interface Move
  * 2. Take two tokens of the same color. This can only be done if there are four or more tokens
  * of that color available.
  * Gold tokens can't be received this way.
+ *
+ * By definition, we hold that nothing in returnedTokens can be in tokens.
+ * (For cases like this, we represent them by subtracting the duplicate token from both until this
+ * holds.)
  */
-data class TakeTokens(val tokens: ImmutableMultiset<ChipColor>): Move
+data class TakeTokens(
+    val tokens: ImmutableMultiset<ChipColor>,
+    val returnedTokens: ImmutableMultiset<ChipColor>): Move
 
 /**
  * Reserve a single development card.

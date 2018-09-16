@@ -32,6 +32,40 @@ data class GameComponents(
 
     return setupNewGame(startingCards, decks, ImmutableSet.of()) // TODO nobles
   }
+
+  /**
+   * Starts a game with a fixed selection of pieces.
+   *
+   * This is deterministic: it always returns the same game given the same input.
+   */
+  fun startFixedGame(startingDevelopments: Collection<DevelopmentCard>): Game {
+    val byRow = run {
+      val builder = ImmutableSetMultimap.Builder<Row, DevelopmentCard>()
+      for (d in startingDevelopments) {
+        val r = developments.inverse()[d]
+        when (r.size) {
+          0 -> throw Error("Could not find development $d")
+          1 -> builder.put(r.single(), d)
+          else -> throw Error("Development $d appeared in ${r.size} rows")
+        }
+      }
+
+      builder.build()
+    }
+
+    val decks = run {
+      val builder = ImmutableListMultimap.Builder<Row, DevelopmentCard>()
+      for (r in Row.values()) {
+        val sorted = developments[r].filter { !byRow[r].contains(it) }
+            .sorted()
+        builder.putAll(r, sorted)
+      }
+
+      builder.build()
+    }
+
+    return setupNewGame(developments, decks, ImmutableSet.of()) // TODO nobles
+  }
 }
 
 fun dealOutDevelopments(d: ListMultimap<Row, DevelopmentCard>): Pair<ImmutableSetMultimap<Row, DevelopmentCard>, ImmutableListMultimap<Row, DevelopmentCard>> {

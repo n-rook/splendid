@@ -31,7 +31,13 @@ class ConsoleReporter {
     println()
 
     val moveDescription = when (m) {
-      is TakeTokens -> "Took tokens ${tokensToList(m.tokens)}"
+      is TakeTokens -> {
+        val tookTokens = "Took tokens ${tokensToList(m.tokens)}"
+        val returnedTokens = if (m.returnedTokens.isEmpty()) ""
+          else " (returned ${tokensToList(m.returnedTokens)})"
+
+        tookTokens + returnedTokens
+      }
       is BuyDevelopment -> {
         val priceDescription = if (m.price.isEmpty())
           "for free"
