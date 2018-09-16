@@ -50,6 +50,45 @@ fun takeDifferentChips(
   return resultsBuilder.build()
 }
 
+fun takeSameChips(
+    open: ImmutableMultiset<ChipColor>,
+    mine: ImmutableMultiset<ChipColor>,
+    take: Int,
+    give: Int
+): ImmutableSet<TakeChipsResults> {
+  val resultsBuilder = ImmutableSet.builder<TakeChipsResults>()
+
+  // Take, and then immediately return.
+  if (min(take, give) > 0) {
+    for (i in 1..min(take, give)) {
+      resultsBuilder.addAll(
+          takeSameChips(
+              open, mine, take - i, give - i
+          )
+      )
+    }
+  }
+
+  val takeColors = open.entrySet().filter { it.count >= take }.map { it.element }
+  for (color in takeColors) {
+    val takenChips: ImmutableMultiset<ChipColor> = ImmutableMultiset.builder<ChipColor>()
+        .addCopies(color, take)
+        .build()
+
+    if (give == 0) {
+      resultsBuilder.add(TakeChipsResults(takenChips, ImmutableMultiset.of()))
+    } else {
+      val availableToGive =
+          ImmutableMultiset.copyOf(Multisets.filter(mine) { it != color })
+      for (giveCombination in multisetCombinations(availableToGive, give)) {
+        resultsBuilder.add(TakeChipsResults(takenChips, ImmutableMultiset.copyOf(giveCombination)))
+      }
+    }
+  }
+
+  return resultsBuilder.build()
+}
+
 data class TakeChipsResults(
     val take: ImmutableMultiset<ChipColor>, val give: ImmutableMultiset<ChipColor>)
 

@@ -92,10 +92,10 @@ class GameTest {
         ImmutableMultiset.of(ChipColor.GREEN, ChipColor.GREEN)
     ))
     // "Take 2" does not support this yet
-//    Truth.assertThat(chipMoves).contains(TakeTokens(
-//        ImmutableMultiset.of(ChipColor.BLACK, ChipColor.BLACK),
-//        ImmutableMultiset.of(ChipColor.RED)
-//    ))
+    Truth.assertThat(chipMoves).contains(TakeTokens(
+        ImmutableMultiset.of(ChipColor.BLACK, ChipColor.BLACK),
+        ImmutableMultiset.of(ChipColor.RED)
+    ))
     Truth.assertThat(chipMoves).contains(TakeTokens(
         // Took and gave back red and white chips
         ImmutableMultiset.of(ChipColor.BLUE),

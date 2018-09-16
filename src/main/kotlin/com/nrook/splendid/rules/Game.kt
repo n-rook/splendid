@@ -75,24 +75,40 @@ data class Game(
     return Multisets.filter(chips) { it: ChipColor? -> it != ChipColor.GOLD }
   }
 
-  fun take3ChipsMoves(): ImmutableList<TakeTokens> {
+  private fun take3ChipsMoves(): ImmutableList<TakeTokens> {
     val availableChips = ImmutableMultiset.copyOf(regularChips())
     val playerChips = tableaux[turn.player]!!.chips
-    val giveCount: Int = max(playerChips.size + 3 - MAX_TOKENS, 0)
+    val giveCount: Int = haveToGiveBack(turn.player, 3)
 
     val options = takeDifferentChips(availableChips, playerChips, 3, giveCount)
     return ImmutableList.copyOf(
         options.map { TakeTokens(it.take, it.give) })
   }
 
-  fun take2IdenticalChipsMoves(): ImmutableList<TakeTokens> {
-    val availableChips = regularChips().entrySet().filter { it.count >= 2 }.map { it.element }
-    return ImmutableList.copyOf(availableChips.map {
-      // TODO Handle giving back
-      TakeTokens(ImmutableMultiset.of(it, it), ImmutableMultiset.of()) })
+  private fun take2IdenticalChipsMoves(): ImmutableList<TakeTokens> {
+    val availableChips = run {
+      val builder = ImmutableMultiset.builder<ChipColor>()
+      for (entry in regularChips().entrySet()) {
+        if (entry.count >= THRESHOLD_TO_TAKE_IDENTICAL_CHIPS) {
+          builder.addCopies(entry.element, entry.count)
+        }
+      }
+
+      builder.build()
+    }
+
+    val playerChips = tableaux[turn.player]!!.chips
+    val giveCount: Int = haveToGiveBack(turn.player, 2)
+    val options = takeSameChips(availableChips, playerChips, 2, giveCount)
+    return ImmutableList.copyOf(options.map { TakeTokens(it.take, it.give) })
   }
 
-  fun buyDevelopmentCardMoves(): ImmutableList<BuyDevelopment> {
+  // If the given player took some chips, this is how many they would have to give back.
+  private fun haveToGiveBack(player: Player, numTaken: Int): Int {
+    return max(tableaux[player]!!.chips.size + numTaken - MAX_TOKENS, 0)
+  }
+
+  private fun buyDevelopmentCardMoves(): ImmutableList<BuyDevelopment> {
     val tableau: Tableau = tableaux[turn.player]!!
     val buyOpenCards = ImmutableList.copyOf(
         developments.filter { tableau.canAfford(it) }
