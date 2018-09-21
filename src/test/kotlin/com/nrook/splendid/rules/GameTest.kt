@@ -154,11 +154,15 @@ class GameTest {
         .hasSize(OPEN_DEVELOPMENT_CARD_COUNT * 3)
 
     val gameWithReservedCard = game.takeMove(reserve)
+
+    Truth.assertThat(gameWithReservedCard.chips).hasCount(ChipColor.GOLD, 4)
+
     val newRowOne = gameWithReservedCard.developments.cards(Row.ONE)
     Truth.assertThat(newRowOne).hasSize(4)
     Truth.assertThat(newRowOne).doesNotContain(cardToReserve)
 
     val newTableau = gameWithReservedCard.tableaux[Player.ONE]!!
     Truth.assertThat(newTableau.reservedDevelopments).containsExactly(cardToReserve)
+    Truth.assertThat(newTableau.chips).containsExactly(ChipColor.GOLD)
   }
 }

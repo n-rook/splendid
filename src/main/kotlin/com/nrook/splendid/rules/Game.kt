@@ -207,18 +207,33 @@ data class Game(
             player.opponent(), tableaux[player.opponent()]!!))
   }
 
+  fun reserveDevelopmentMoveGetsGold(): Boolean {
+    return chips.count(ChipColor.GOLD) > 0
+  }
+
   private fun reserveDevelopmentMove(move: ReserveDevelopment): Game {
     val actor = turn.player
     val actingTableau = tableaux[actor]!!
     val newTableau = actingTableau.toBuilder()
         .addReservedDevelopment(move.card)
+        .addChips(
+            if (reserveDevelopmentMoveGetsGold())
+              ImmutableMultiset.of(ChipColor.GOLD)
+            else ImmutableMultiset.of())
         .build()
     val updatedDevelopments = developments.removeCard(move.card)
+
+    val newCommonChips = if (reserveDevelopmentMoveGetsGold())
+      Multisets.difference(chips, ImmutableMultiset.of(ChipColor.GOLD))
+    else chips
+
+
+    // I forgot to give you the gold!
     return Game(
         turn.next(),
         updatedDevelopments,
         nobles,
-        chips,
+        ImmutableMultiset.copyOf(newCommonChips),
         ImmutableMap.of(
             actor, newTableau,
             actor.opponent(), tableaux[actor.opponent()]!!

@@ -10,6 +10,7 @@ import com.nrook.splendid.rules.Row
 import com.nrook.splendid.rules.Turn
 import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
+import com.nrook.splendid.rules.moves.ReserveDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 
 class ConsoleReporter {
@@ -48,6 +49,12 @@ class ConsoleReporter {
         else " and visited by ${describeNoble(m.noble)}"
 
         "Bought card: ${describeCard(m.card)} $priceDescription$nobleDescription"
+      }
+      is ReserveDevelopment -> {
+        val goldDescription = if (g.reserveDevelopmentMoveGetsGold())
+          " (+1 [G])"
+        else ""
+        "Reserved card: ${describeCard(m.card)}$goldDescription"
       }
       else -> "Unknown move $m"
     }
@@ -89,6 +96,6 @@ private fun encodeToken(c: ChipColor): String {
     ChipColor.BLACK -> "B"
     ChipColor.WHITE -> "W"
     ChipColor.RED -> "R"
-    ChipColor.BLUE -> "B"
+    ChipColor.BLUE -> "U"
   }
 }
