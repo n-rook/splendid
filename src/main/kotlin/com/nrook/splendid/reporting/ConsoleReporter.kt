@@ -17,7 +17,7 @@ class ConsoleReporter {
     val string = StringBuilder()
     for (row in Row.values().reversed()) {
       string.appendln("Row $row")
-      for (card in g.developments.rows[row]) {
+      for (card in g.developments.rows[row]!!.cards) {
         string.appendln("  - ${describeCard(card)}")
       }
     }

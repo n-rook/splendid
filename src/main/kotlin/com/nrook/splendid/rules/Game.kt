@@ -10,6 +10,7 @@ import com.google.common.collect.Multiset
 import com.google.common.collect.Multisets
 import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
+import com.nrook.splendid.rules.moves.ReserveDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 import kotlin.math.max
 
@@ -21,8 +22,7 @@ data class Game(
     val developments: Developments,
     val nobles: ImmutableSet<Noble>,
     val chips: ImmutableMultiset<ChipColor>,
-    val tableaux: ImmutableMap<Player, Tableau>,
-    val decks: ImmutableMap<Row, Deck>) {
+    val tableaux: ImmutableMap<Player, Tableau>) {
   fun winner(): Player? {
     // In Splendor, play continues until all players have played the same number of rounds.
     if (turn.player == Player.TWO) {
@@ -108,10 +108,18 @@ data class Game(
     return max(tableaux[player]!!.chips.size + numTaken - MAX_TOKENS, 0)
   }
 
+  private fun reserveDevelopmentMoves(): ImmutableList<ReserveDevelopment> {
+    if (tableaux[turn.player]!!.reservedDevelopments.size >= MAX_RESERVED_DEVELOPMENTS) {
+      return ImmutableList.of()
+    }
+
+    return ImmutableList.copyOf(developments.cards().map { ReserveDevelopment(it) })
+  }
+
   private fun buyDevelopmentCardMoves(): ImmutableList<BuyDevelopment> {
     val tableau: Tableau = tableaux[turn.player]!!
     val buyOpenCards = ImmutableList.copyOf(
-        developments.filter { tableau.canAfford(it) }
+        developments.cards().filter { tableau.canAfford(it) }
             .flatMap {
               val minimalPrice = tableau.minimalPrice(it)
 
@@ -172,8 +180,7 @@ data class Game(
         newCommonChips,
         ImmutableMap.of(
             actor, newTableau,
-            actor.opponent(), tableaux[actor.opponent()]!!),
-        decks)
+            actor.opponent(), tableaux[actor.opponent()]!!))
   }
 
   /**
@@ -195,8 +202,11 @@ data class Game(
         ImmutableMultiset.copyOf(newCommonChips),
         ImmutableMap.of(
             player, newTableau,
-            player.opponent(), tableaux[player.opponent()]!!),
-        decks)
+            player.opponent(), tableaux[player.opponent()]!!))
+  }
+
+  private fun reserveDevelopmentMove(move: ReserveDevelopment): Game {
+    TODO()
   }
 
   private fun buyDevelopmentMove(move: BuyDevelopment): Game {
@@ -208,18 +218,20 @@ data class Game(
         .build()
     val updatedChips = ImmutableMultiset.copyOf(Multisets.sum(chips, move.price))
 
-    // TODO: Rewrite Developments to contain Decks too, and make this a method there
-    val row = Row.values().firstOrNull { developments.rows.containsEntry(it, move.card) }
-        ?: throw Error("Cannot find development card in common area")
+    val newDevelopments = developments.removeCard(move.card)
 
-    val (newDeck, newRow) = drawReplacement(move.card, decks[row]!!, developments.rows[row])
-    val newDecks = kotlin.run {
-      val map = HashMap(decks)
-      map[row] = newDeck
-      ImmutableMap.copyOf(map)
-    }
-
-    val newDevelopments = developments.replaceRow(row, newRow)
+//    // TODO: Rewrite Developments to contain Decks too, and make this a method there
+//    val row = Row.values().firstOrNull { developments.rows.containsEntry(it, move.card) }
+//        ?: throw Error("Cannot find development card in common area")
+//
+//    val (newDeck, newRow) = drawReplacement(move.card, decks[row]!!, developments.rows[row])
+//    val newDecks = kotlin.run {
+//      val map = HashMap(decks)
+//      map[row] = newDeck
+//      ImmutableMap.copyOf(map)
+//    }
+//
+//    val newDevelopments = developments.replaceRow(row, newRow)
 
     return Game(
         turn.next(),
@@ -228,8 +240,7 @@ data class Game(
         updatedChips,
         ImmutableMap.of(
             actor, newTableau,
-            actor.opponent(), tableaux[actor.opponent()]!!),
-        newDecks)
+            actor.opponent(), tableaux[actor.opponent()]!!))
   }
 }
 
@@ -257,13 +268,21 @@ fun setupNewGame(
     return@run builder.build()
   }
 
+  val developments: Developments = Developments(
+        ImmutableMap.copyOf(
+            startingDevelopments.asMap()
+                .mapValues {
+                  DevelopmentRow(ImmutableSet.copyOf(it.value), decks[it.key]!!)
+                }
+        )
+    )
+
   return Game(
       Turn.START,
-      Developments(startingDevelopments),
+      developments,
       nobles,
       STARTING_CHIPS,
-      ImmutableMap.of(Player.ONE, EMPTY_TABLEAU, Player.TWO, EMPTY_TABLEAU),
-      decks
+      ImmutableMap.of(Player.ONE, EMPTY_TABLEAU, Player.TWO, EMPTY_TABLEAU)
   )
 }
 
