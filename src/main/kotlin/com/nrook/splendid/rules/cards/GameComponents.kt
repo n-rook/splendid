@@ -67,7 +67,7 @@ data class GameComponents(
       builder.build()
     }
 
-    return setupNewGame(developments, decks, ImmutableSet.copyOf(nobles))
+    return setupNewGame(byRow, decks, ImmutableSet.copyOf(nobles))
   }
 }
 

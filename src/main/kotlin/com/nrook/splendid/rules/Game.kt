@@ -65,6 +65,7 @@ data class Game(
         .addAll(take3ChipsMoves())
         .addAll(take2IdenticalChipsMoves())
         .addAll(buyDevelopmentCardMoves())
+        .addAll(reserveDevelopmentMoves())
         .build()
   }
 
@@ -152,6 +153,7 @@ data class Game(
     return when(move) {
       is TakeTokens -> takeTokensMove(move)
       is BuyDevelopment -> buyDevelopmentMove(move)
+      is ReserveDevelopment -> reserveDevelopmentMove(move)
       else -> TODO()
     }
   }
@@ -206,7 +208,22 @@ data class Game(
   }
 
   private fun reserveDevelopmentMove(move: ReserveDevelopment): Game {
-    TODO()
+    val actor = turn.player
+    val actingTableau = tableaux[actor]!!
+    val newTableau = actingTableau.toBuilder()
+        .addReservedDevelopment(move.card)
+        .build()
+    val updatedDevelopments = developments.removeCard(move.card)
+    return Game(
+        turn.next(),
+        updatedDevelopments,
+        nobles,
+        chips,
+        ImmutableMap.of(
+            actor, newTableau,
+            actor.opponent(), tableaux[actor.opponent()]!!
+        )
+    )
   }
 
   private fun buyDevelopmentMove(move: BuyDevelopment): Game {
@@ -219,20 +236,6 @@ data class Game(
     val updatedChips = ImmutableMultiset.copyOf(Multisets.sum(chips, move.price))
 
     val newDevelopments = developments.removeCard(move.card)
-
-//    // TODO: Rewrite Developments to contain Decks too, and make this a method there
-//    val row = Row.values().firstOrNull { developments.rows.containsEntry(it, move.card) }
-//        ?: throw Error("Cannot find development card in common area")
-//
-//    val (newDeck, newRow) = drawReplacement(move.card, decks[row]!!, developments.rows[row])
-//    val newDecks = kotlin.run {
-//      val map = HashMap(decks)
-//      map[row] = newDeck
-//      ImmutableMap.copyOf(map)
-//    }
-//
-//    val newDevelopments = developments.replaceRow(row, newRow)
-
     return Game(
         turn.next(),
         newDevelopments,
@@ -242,18 +245,6 @@ data class Game(
             actor, newTableau,
             actor.opponent(), tableaux[actor.opponent()]!!))
   }
-}
-
-private fun drawReplacement(d: DevelopmentCard, deck: Deck, row: Set<DevelopmentCard>):
-    Pair<Deck, Set<DevelopmentCard>> {
-  if (deck.isEmpty()) {
-    val newRow = ImmutableSet.copyOf(row.minus(d))
-    return Pair(deck, newRow)
-  }
-
-  val (replacement, newDeck) = deck.draw()
-  val newRow = ImmutableSet.copyOf(row.minus(d).plus(replacement))
-  return Pair(newDeck, newRow)
 }
 
 fun setupNewGame(
@@ -268,14 +259,13 @@ fun setupNewGame(
     return@run builder.build()
   }
 
-  val developments: Developments = Developments(
-        ImmutableMap.copyOf(
-            startingDevelopments.asMap()
-                .mapValues {
-                  DevelopmentRow(ImmutableSet.copyOf(it.value), decks[it.key]!!)
-                }
-        )
-    )
+  val developments = Developments(run {
+    val builder = ImmutableMap.builder<Row, DevelopmentRow>()
+    for (row in Row.values()) {
+      builder.put(row, DevelopmentRow(startingDevelopments[row]!!, decks[row]!!))
+    }
+    builder.build()
+  })
 
   return Game(
       Turn.START,

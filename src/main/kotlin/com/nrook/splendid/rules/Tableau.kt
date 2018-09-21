@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Multiset
 import com.google.common.collect.Multisets
-import javafx.scene.control.Tab
-import kotlin.math.min
 
 /**
  * A single player's game area.
@@ -18,6 +16,12 @@ data class Tableau(
     val developments: ImmutableSet<DevelopmentCard>,
     val nobles: ImmutableSet<Noble>,
     val reservedDevelopments: ImmutableSet<DevelopmentCard>) {
+  init {
+    if (reservedDevelopments.size > MAX_RESERVED_DEVELOPMENTS) {
+      throw Error("Cannot reserve ${reservedDevelopments.size} developments")
+    }
+  }
+
   val victoryPoints
     get() = developments.map { it.victoryPoints }.sum() +
         nobles.map { it.victoryPoints }.sum()
@@ -108,16 +112,16 @@ data class Tableau(
   }
 
   fun toBuilder(): Builder {
-    return Builder(chips, developments, nobles, reservedDevelopments)
+    return Builder(chips, developments, nobles, HashSet(reservedDevelopments))
   }
 
   class Builder(
       private var chips: ImmutableMultiset<ChipColor>,
       private var developments: ImmutableSet<DevelopmentCard>,
       private var nobles: ImmutableSet<Noble>,
-      private var reservedDevelopments: ImmutableSet<DevelopmentCard>) {
+      private var reservedDevelopments: HashSet<DevelopmentCard>) {
     fun build(): Tableau {
-      return Tableau(chips, developments, nobles, reservedDevelopments)
+      return Tableau(chips, developments, nobles, ImmutableSet.copyOf(reservedDevelopments))
     }
 
     fun addChips(addend: Multiset<ChipColor>): Builder {
@@ -138,6 +142,11 @@ data class Tableau(
           .addAll(developments)
           .add(d)
           .build()
+      return this
+    }
+
+    fun addReservedDevelopment(d: DevelopmentCard): Builder {
+      reservedDevelopments.add(d)
       return this
     }
   }

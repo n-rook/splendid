@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth
 import com.nrook.splendid.rules.cards.testing.createStandardTestGame
 import com.nrook.splendid.rules.moves.BuyDevelopment
+import com.nrook.splendid.rules.moves.ReserveDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 import com.nrook.splendid.rules.testing.assertChips
 import org.junit.Before
@@ -138,5 +139,26 @@ class GameTest {
 
     Truth.assertThat(move.price).containsExactly(ChipColor.WHITE, ChipColor.WHITE, ChipColor.WHITE)
     Truth.assertThat(move.noble).isNull()
+  }
+
+  @Test
+  fun reserveDevelopmentCard() {
+    val cardToReserve = DevelopmentCard(
+        0,
+        Color.RED,
+        ImmutableMultiset.builder<Color>().addCopies(Color.WHITE, 3).build())
+    val reserve = ReserveDevelopment(cardToReserve)
+    val moves = game.moves()
+    Truth.assertThat(moves).contains(reserve)
+    Truth.assertThat(moves.filterIsInstance(ReserveDevelopment::class.java))
+        .hasSize(OPEN_DEVELOPMENT_CARD_COUNT * 3)
+
+    val gameWithReservedCard = game.takeMove(reserve)
+    val newRowOne = gameWithReservedCard.developments.cards(Row.ONE)
+    Truth.assertThat(newRowOne).hasSize(4)
+    Truth.assertThat(newRowOne).doesNotContain(cardToReserve)
+
+    val newTableau = gameWithReservedCard.tableaux[Player.ONE]!!
+    Truth.assertThat(newTableau.reservedDevelopments).containsExactly(cardToReserve)
   }
 }

@@ -12,11 +12,24 @@ import com.google.common.collect.Iterators
 data class Developments(
     val rows: ImmutableMap<Row, DevelopmentRow>) {
 
+  init {
+    for (row in Row.values()) {
+      val size = rows[row]!!.cards.size
+      if (size > OPEN_DEVELOPMENT_CARD_COUNT) {
+        throw Error("Too many cards ($size) in $row")
+      }
+    }
+  }
+
   /**
    * Iterates through development cards in order.
    */
   fun cards(): Iterable<DevelopmentCard> {
     return Iterables.concat(rows.values.map { it.cards })
+  }
+
+  fun cards(row: Row): ImmutableSet<DevelopmentCard> {
+    return rows[row]!!.cards
   }
 
   fun removeCard(card: DevelopmentCard): Developments {
