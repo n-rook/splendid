@@ -117,31 +117,39 @@ data class Game(
     return ImmutableList.copyOf(developments.cards().map { ReserveDevelopment(it) })
   }
 
+  // Returns the BuyDevelopment move to buy this card, if possible
+  // Does not check for the card's presence anywhere
+  private fun moveToBuy(card: DevelopmentCard, isReserved: Boolean): List<BuyDevelopment> {
+    val tableau: Tableau = tableaux[turn.player]!!
+    if (!tableau.canAfford(card)) {
+      return ImmutableList.of()
+    }
+
+    val minimalPrice = tableau.minimalPrice(card)
+
+    val possibleNobles = nobles.filter {
+      n: Noble -> tableau.receivesVisit(card, n)
+    }
+    return if (possibleNobles.isEmpty()) {
+      ImmutableList.of(
+          BuyDevelopment(card, isReserved, minimalPrice, null)
+      )
+    } else {
+      possibleNobles.map { n: Noble ->
+        BuyDevelopment(card, isReserved, minimalPrice, n)
+      }
+    }
+  }
+
   private fun buyDevelopmentCardMoves(): ImmutableList<BuyDevelopment> {
     val tableau: Tableau = tableaux[turn.player]!!
-    val buyOpenCards = ImmutableList.copyOf(
-        developments.cards().filter { tableau.canAfford(it) }
-            .flatMap {
-              val minimalPrice = tableau.minimalPrice(it)
-
-              val possibleNobles = nobles.filter {
-                n: Noble -> tableau.receivesVisit(it, n)
-              }
-              if (possibleNobles.isEmpty()) {
-                return@flatMap ImmutableList.of<BuyDevelopment>(
-                    BuyDevelopment(it, minimalPrice, null)
-                )
-              } else {
-                return@flatMap possibleNobles.map { n: Noble -> BuyDevelopment(it, minimalPrice, n) }
-              }
-            }
-    )
-//            .map { BuyDevelopment(it, tableau.minimalPrice(it)) })
 
     // TODO: Present opportunity to spend extra gold for no reason
-    // TODO: Buy reserved development cards
 
-    return buyOpenCards
+    return ImmutableList.builder<BuyDevelopment>()
+        .addAll(developments.cards().flatMap { moveToBuy(it, false) })
+        .addAll(tableau.reservedDevelopments.flatMap { moveToBuy(it, true) })
+        .build()
   }
 
   fun takeMove(move: Move): Game {
@@ -244,20 +252,27 @@ data class Game(
   private fun buyDevelopmentMove(move: BuyDevelopment): Game {
     val actor = turn.player
     val actingTableau = tableaux[actor]!!
-    val newTableau = actingTableau.toBuilder()
-        .subtractChips(move.price)
-        .addDevelopment(move.card)
-        .build()
-    val updatedChips = ImmutableMultiset.copyOf(Multisets.sum(chips, move.price))
 
-    val newDevelopments = developments.removeCard(move.card)
+    val updatedChips = ImmutableMultiset.copyOf(Multisets.sum(chips, move.price))
+    val newDevelopments: Developments
+    val newTableauBuilder: Tableau.Builder = actingTableau.toBuilder()
+        .subtractChips(move.price)
+    if (move.isReserved) {
+      newTableauBuilder.removeReservedDevelopment(move.card)
+          .addDevelopment(move.card)
+      newDevelopments = developments
+    } else {
+      newTableauBuilder.addDevelopment(move.card)
+      newDevelopments = developments.removeCard(move.card)
+    }
+
     return Game(
         turn.next(),
         newDevelopments,
         nobles,
         updatedChips,
         ImmutableMap.of(
-            actor, newTableau,
+            actor, newTableauBuilder.build(),
             actor.opponent(), tableaux[actor.opponent()]!!))
   }
 }

@@ -145,6 +145,14 @@ data class Tableau(
       return this
     }
 
+    fun removeReservedDevelopment(d: DevelopmentCard): Builder {
+      if (!reservedDevelopments.contains(d)) {
+        throw Error("$d not in reserved developments")
+      }
+      reservedDevelopments.remove(d)
+      return this
+    }
+
     fun addReservedDevelopment(d: DevelopmentCard): Builder {
       reservedDevelopments.add(d)
       return this

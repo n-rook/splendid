@@ -42,6 +42,7 @@ data class ReserveDevelopment(val card: DevelopmentCard): Move
  */
 data class BuyDevelopment(
     val card: DevelopmentCard,
+    val isReserved: Boolean,
     val price: ImmutableMultiset<ChipColor>,
     val noble: Noble?): Move
 

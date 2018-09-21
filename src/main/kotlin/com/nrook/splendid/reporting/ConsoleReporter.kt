@@ -41,6 +41,7 @@ class ConsoleReporter {
         tookTokens + returnedTokens
       }
       is BuyDevelopment -> {
+        val noun = if (m.isReserved) "reserved card" else "card"
         val priceDescription = if (m.price.isEmpty())
           "for free"
         else "with ${tokensToList(m.price)}"
@@ -48,11 +49,11 @@ class ConsoleReporter {
           ""
         else " and visited by ${describeNoble(m.noble)}"
 
-        "Bought card: ${describeCard(m.card)} $priceDescription$nobleDescription"
+        "Bought $noun: ${describeCard(m.card)} $priceDescription$nobleDescription"
       }
       is ReserveDevelopment -> {
         val goldDescription = if (g.reserveDevelopmentMoveGetsGold())
-          " (+1 [G])"
+          " (+1 [${encodeToken(ChipColor.GOLD)}])"
         else ""
         "Reserved card: ${describeCard(m.card)}$goldDescription"
       }
