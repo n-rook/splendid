@@ -1,23 +1,26 @@
 package com.nrook.splendid.ai
 
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Maps
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.rules.Game
-import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
 import java.util.*
-import kotlin.collections.ArrayList
+
 
 /**
- * Chooses moves randomly, preferring those which get lots of victory points.
+ * Chooses moves based on a scoring algorithm.
  */
-class GreedyRandomPlayer(val random: Random): SynchronousAi {
+class SimpleScorePlayer(
+    val random: Random,
+    val scorer: (state: Game) -> Double): SynchronousAi {
+
   override fun selectMove(game: Game): Move {
     val moves = game.moves()
-    val bestMoves = getMaxes(moves) { when(it) {
-      is BuyDevelopment -> it.card.victoryPoints.toDouble()
-      else -> 0.0
-    } }
+    val moveToOutcome = Maps.toMap(moves) { game.takeMove(it!!) }
+    val bestMoves = getMaxes(moves) { scorer(moveToOutcome[it]!!)}
+
     if (moves.isEmpty()) {
       throw Error("No legal moves. This should not be possible")
     }
