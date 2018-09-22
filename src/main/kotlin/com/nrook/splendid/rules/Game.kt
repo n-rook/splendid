@@ -280,10 +280,18 @@ data class Game(
       newDevelopments = developments.removeCard(move.card)
     }
 
+    val newNobles: ImmutableSet<Noble>
+    if (move.noble != null) {
+      newTableauBuilder.addNoble(move.noble)
+      newNobles = ImmutableSet.copyOf(nobles.filter { it != move.noble })
+    } else {
+      newNobles = nobles
+    }
+
     return Game(
         turn.next(),
         newDevelopments,
-        nobles,
+        newNobles,
         updatedChips,
         ImmutableMap.of(
             actor, newTableauBuilder.build(),

@@ -51,6 +51,14 @@ class ValueFunction(val weights: ImmutableMap<Feature, Double>) {
    * +inf is returned if Player 1 has won, and -inf if they have lost.
    */
   fun compute(game: Game): Double {
+    if (game.winner() != null) {
+      return when(game.winner()) {
+        Player.ONE -> Double.POSITIVE_INFINITY
+        Player.TWO -> Double.NEGATIVE_INFINITY
+        null -> throw Error("not possible")
+      }
+    }
+
     val values = computeAllFeatureValues(game)
     return weights.entries.sumByDouble { it.value * values[it.key]!! }
   }

@@ -112,16 +112,16 @@ data class Tableau(
   }
 
   fun toBuilder(): Builder {
-    return Builder(chips, developments, nobles, HashSet(reservedDevelopments))
+    return Builder(chips, developments, HashSet(nobles), HashSet(reservedDevelopments))
   }
 
   class Builder(
       private var chips: ImmutableMultiset<ChipColor>,
       private var developments: ImmutableSet<DevelopmentCard>,
-      private var nobles: ImmutableSet<Noble>,
+      private var nobles: HashSet<Noble>,
       private var reservedDevelopments: HashSet<DevelopmentCard>) {
     fun build(): Tableau {
-      return Tableau(chips, developments, nobles, ImmutableSet.copyOf(reservedDevelopments))
+      return Tableau(chips, developments, ImmutableSet.copyOf(nobles), ImmutableSet.copyOf(reservedDevelopments))
     }
 
     fun addChips(addend: Multiset<ChipColor>): Builder {
@@ -142,6 +142,11 @@ data class Tableau(
           .addAll(developments)
           .add(d)
           .build()
+      return this
+    }
+
+    fun addNoble(n: Noble): Builder {
+      nobles.add(n)
       return this
     }
 
