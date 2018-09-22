@@ -9,12 +9,13 @@ import com.nrook.splendid.rules.Player
 import com.nrook.splendid.rules.Row
 import com.nrook.splendid.rules.Turn
 import com.nrook.splendid.rules.moves.BuyDevelopment
+import com.nrook.splendid.rules.moves.DoNothing
 import com.nrook.splendid.rules.moves.Move
 import com.nrook.splendid.rules.moves.ReserveDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 
-class ConsoleReporter {
-  fun describeGame(g: Game) {
+class ConsoleReporter : Reporter {
+  override fun describeGame(g: Game) {
     val string = StringBuilder()
     for (row in Row.values().reversed()) {
       string.appendln("Row $row")
@@ -28,7 +29,7 @@ class ConsoleReporter {
     print(string)
   }
 
-  fun reportMove(g: Game, m: Move) {
+  override fun reportMove(g: Game, m: Move) {
     describeGame(g)
     println()
 
@@ -56,6 +57,9 @@ class ConsoleReporter {
           " (+1 [${encodeToken(ChipColor.GOLD)}])"
         else ""
         "Reserved card: ${describeCard(m.card)}$goldDescription"
+      }
+      is DoNothing -> {
+        "Did nothing"
       }
       else -> "Unknown move $m"
     }

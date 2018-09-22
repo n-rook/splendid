@@ -46,9 +46,13 @@ data class BuyDevelopment(
     val price: ImmutableMultiset<ChipColor>,
     val noble: Noble?): Move
 
-// To implement:
-// You can only have ten tokens at once, so TakeTokens and ReserveDevelopment should specify the
-// returned tokens. For now, this limit is not implemented.
-//
-// If you gain access to multiple nobles simultaneously, you choose one to get. This is rare,
-// so it is not modeled yet.
+/**
+ * Do nothing.
+ *
+ * This move is only available when no other moves are open. It should be extremely rare.
+ */
+class DoNothing private constructor(): Move {
+  companion object {
+    val INSTANCE = DoNothing()
+  }
+}

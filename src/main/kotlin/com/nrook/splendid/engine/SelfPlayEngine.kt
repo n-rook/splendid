@@ -2,12 +2,13 @@ package com.nrook.splendid.engine
 
 import com.google.common.collect.ImmutableMap
 import com.nrook.splendid.reporting.ConsoleReporter
+import com.nrook.splendid.reporting.Reporter
 import com.nrook.splendid.rules.Game
 import com.nrook.splendid.rules.Player
 
 class SelfPlayEngine(
     private val ais: ImmutableMap<Player, SynchronousAi>,
-    private val reporter: ConsoleReporter) {
+    private val reporter: Reporter) {
 
   /**
    * Run self-play.

@@ -9,10 +9,12 @@ import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.Multiset
 import com.google.common.collect.Multisets
 import com.nrook.splendid.rules.moves.BuyDevelopment
+import com.nrook.splendid.rules.moves.DoNothing
 import com.nrook.splendid.rules.moves.Move
 import com.nrook.splendid.rules.moves.ReserveDevelopment
 import com.nrook.splendid.rules.moves.TakeTokens
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Game rules and state.
@@ -59,14 +61,18 @@ data class Game(
    * Returns a list of all legal moves in this position.
    */
   fun moves(): ImmutableList<Move> {
-    // NOTE: There is an issue where moves() is sometimes zero.
-    // This is because we have not yet implemented "take some chips and put them back".
-    return ImmutableList.builder<Move>()
+    val moves = ImmutableList.builder<Move>()
         .addAll(take3ChipsMoves())
         .addAll(take2IdenticalChipsMoves())
         .addAll(buyDevelopmentCardMoves())
         .addAll(reserveDevelopmentMoves())
         .build()
+
+    if (moves.isEmpty()) {
+      return ImmutableList.of(DoNothing.INSTANCE)
+    }
+
+    return moves
   }
 
   /**
@@ -78,10 +84,17 @@ data class Game(
 
   private fun take3ChipsMoves(): ImmutableList<TakeTokens> {
     val availableChips = ImmutableMultiset.copyOf(regularChips())
-    val playerChips = tableaux[turn.player]!!.chips
-    val giveCount: Int = haveToGiveBack(turn.player, 3)
+    if (availableChips.isEmpty()) {
+      return ImmutableList.of()
+    }
 
-    val options = takeDifferentChips(availableChips, playerChips, 3, giveCount)
+    // If there are fewer than 3 colors of chips available, still present the player with the option
+    // to take a subset of the chips.
+    val maxChipsToTake = min(3, availableChips.entrySet().size)
+    val playerChips = tableaux[turn.player]!!.chips
+    val giveCount: Int = haveToGiveBack(turn.player, maxChipsToTake)
+
+    val options = takeDifferentChips(availableChips, playerChips, maxChipsToTake, giveCount)
     return ImmutableList.copyOf(
         options.map { TakeTokens(it.take, it.give) })
   }
@@ -162,6 +175,7 @@ data class Game(
       is TakeTokens -> takeTokensMove(move)
       is BuyDevelopment -> buyDevelopmentMove(move)
       is ReserveDevelopment -> reserveDevelopmentMove(move)
+      is DoNothing -> doNothingMove()
       else -> TODO()
     }
   }
@@ -274,6 +288,10 @@ data class Game(
         ImmutableMap.of(
             actor, newTableauBuilder.build(),
             actor.opponent(), tableaux[actor.opponent()]!!))
+  }
+
+  private fun doNothingMove(): Game {
+    return Game(turn.next(), developments, nobles, chips, tableaux)
   }
 }
 
