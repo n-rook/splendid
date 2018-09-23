@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultiset
 import com.google.common.collect.ImmutableMap
 import com.nrook.splendid.engine.SelfPlayEngine
 import com.nrook.splendid.engine.SynchronousAi
+import com.nrook.splendid.reporting.ConsoleReporter
 import com.nrook.splendid.reporting.NullReporter
 import com.nrook.splendid.rules.Player
 import com.nrook.splendid.rules.cards.loadComponentsFromFile
@@ -19,7 +20,7 @@ fun oneGame(playerOne: SynchronousAi, playerTwo: SynchronousAi) {
   val game = components.startGame(random)
   val engine = SelfPlayEngine(
       ImmutableMap.of(Player.ONE, playerOne, Player.TWO, playerTwo),
-      NullReporter())
+      ConsoleReporter())
 
   val victor = engine.run(game)
 

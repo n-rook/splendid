@@ -5,6 +5,7 @@ import com.nrook.splendid.ai.ValueFunction
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.rules.Game
 import com.nrook.splendid.rules.Player
+import com.nrook.splendid.rules.moves.BuyDevelopment
 import com.nrook.splendid.rules.moves.Move
 import mu.KLogging
 import java.util.*
@@ -42,30 +43,45 @@ class MinimaxPlayer(val valueFunction: ValueFunction): SynchronousAi {
       nextNode.expand()
     }
 
-    describeChoice(tree, depth - (expansionQueue.size.toDouble() / currentDepthDenominator))
+    val choice = pickBestWinner(
+        tree.root.bestEdges().map { it.edge })
+
+    // If currentDepthDenominator is 0 we set remainingDepth to 1 because we didn't actually
+    // do anything on this depth level.
+    val remainingDepth: Double = if (currentDepthDenominator == 0) 1.0
+    else expansionQueue.size.toDouble() / currentDepthDenominator
+    describeChoice(choice, tree, depth - remainingDepth)
 
     return tree.root.bestEdge().edge
   }
 
-  fun describeChoice(tree: MinimaxTree, depth: Double) {
-    logger.debug { "Depth: $depth" }
-    val topChoice = tree.root.bestEdge()
+  // Picks a winner from a set of equal-score options.
+  // Not important for decision-making: the intent of this is just to stop the AI from
+  // doing a touchdown dance when it has won the game, by encouraging it to take moves
+  // which actually do something.
+  private fun pickBestWinner(moves: List<Move>): Move {
+    return moves.firstOrNull { it is BuyDevelopment } ?: moves.first()
+  }
 
-    if (topChoice.node.score == Double.POSITIVE_INFINITY) {
-      logger.debug("${topChoice.edge} makes me win")
+  private fun describeChoice(choice: Move, tree: MinimaxTree, depth: Double) {
+    logger.debug { "Depth: $depth" }
+    val choice = tree.root.bestEdge()
+
+    if (choice.node.score == Double.POSITIVE_INFINITY) {
+      logger.debug("${choice.edge} makes me win")
       return
-    } else if (topChoice.node.score == Double.NEGATIVE_INFINITY) {
+    } else if (choice.node.score == Double.NEGATIVE_INFINITY) {
       logger.debug("Basically I'm screwed lol")
       return
     }
 
     val otherGoodChoices = tree.root.children!!.filter {
-      topChoice.node.score - it.node.score < 100
+      choice.node.score - it.node.score < 100
     }
     if (otherGoodChoices.isEmpty()) {
-      logger.debug("Went with choice ${topChoice.edge}. All the other choices were bad")
+      logger.debug("Went with choice ${choice.edge}. All the other choices were bad")
     } else {
-      logger.debug("Went with choice ${topChoice.edge} (${topChoice.node.score}). But these choices were also good:\n")
+      logger.debug("Went with choice ${choice.edge} (${choice.node.score}). But these choices were also good:\n")
       for (choice in otherGoodChoices) {
         logger.debug("${choice.node.score} | ${choice.edge}")
       }
@@ -120,6 +136,19 @@ class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) 
           children!!.minBy { it.node.score  }!!
         }
       }
+    }
+
+    /**
+     * Returns all entries with the maximum score. Not very efficient.
+     */
+    fun bestEdges(): ImmutableList<ChildRelationship> {
+      if (children == null) {
+        throw Error("Children is null")
+      }
+      val maxScore = bestEdge().node.score
+      return ImmutableList.copyOf(
+          children!!.filter { it.node.score == maxScore }
+      )
     }
 
     // Compute children, and get score based on them.
