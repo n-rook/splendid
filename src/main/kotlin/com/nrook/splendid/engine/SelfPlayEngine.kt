@@ -8,6 +8,7 @@ import com.nrook.splendid.rules.Player
 
 class SelfPlayEngine(
     private val ais: ImmutableMap<Player, SynchronousAi>,
+    private val shuffler: Shuffler,
     private val reporter: Reporter) {
 
   /**
@@ -20,7 +21,9 @@ class SelfPlayEngine(
     while (currentState.winner() == null) {
       val nextMove = ais[currentState.turn.player]!!.selectMove(currentState)
       reporter.reportMove(currentState, nextMove)
-      currentState = currentState.takeMove(nextMove)
+      // Shuffle after the AI chooses a move, but before the move actually happens, so that
+      // it cannot make use of the information here.
+      currentState = shuffler.shuffle(currentState).takeMove(nextMove)
     }
     return currentState.winner()!!
   }

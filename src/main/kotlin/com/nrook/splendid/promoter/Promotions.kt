@@ -2,6 +2,7 @@ package com.nrook.splendid.promoter
 
 import com.google.common.collect.HashMultiset
 import com.google.common.collect.ImmutableMap
+import com.nrook.splendid.engine.RandomShuffler
 import com.nrook.splendid.engine.SelfPlayEngine
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.reporting.ConsoleReporter
@@ -20,6 +21,7 @@ fun oneGame(playerOne: SynchronousAi, playerTwo: SynchronousAi) {
   val game = components.startGame(random)
   val engine = SelfPlayEngine(
       ImmutableMap.of(Player.ONE, playerOne, Player.TWO, playerTwo),
+      RandomShuffler(random),
       ConsoleReporter())
 
   val victor = engine.run(game)
@@ -33,6 +35,7 @@ fun winRate(playerOne: SynchronousAi, playerTwo: SynchronousAi, games: Int) {
   val reporter = NullReporter()
   val engine = SelfPlayEngine(
       ImmutableMap.of(Player.ONE, playerOne, Player.TWO, playerTwo),
+      RandomShuffler(random),
       reporter)
 
   val forkJoinPool = ForkJoinPool()
