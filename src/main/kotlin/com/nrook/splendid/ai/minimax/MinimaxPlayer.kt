@@ -6,9 +6,12 @@ import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.rules.Game
 import com.nrook.splendid.rules.Player
 import com.nrook.splendid.rules.moves.Move
+import mu.KLogging
 import java.util.*
 
 private val OPS = 10000
+
+val logger = KLogging().logger("Minimax")
 
 /**
  * A player which uses a minimax algorithm to compute the best move.
@@ -18,9 +21,16 @@ class MinimaxPlayer(val valueFunction: ValueFunction): SynchronousAi {
     val tree = MinimaxTree(game.turn.player, valueFunction, game)
 
     val expansionQueue = LinkedList<MinimaxTree.Node>(ImmutableList.of(tree.root))
+    var depth = 0  // for logging only
+    var currentDepthDenominator: Int = -1
     for (i in 0..OPS) {
       if (expansionQueue.isEmpty()) {
-        expansionQueue.addAll(tree.root.getExpandableSelfOrDescendants())
+        val toExpand = tree.root.getExpandableSelfOrDescendants()
+        expansionQueue.addAll(toExpand)
+
+        depth++
+        logger.debug { "Expanding minimax tree for depth $depth" }
+        currentDepthDenominator = toExpand.size
       }
 
       if (expansionQueue.isEmpty()) {
@@ -32,7 +42,34 @@ class MinimaxPlayer(val valueFunction: ValueFunction): SynchronousAi {
       nextNode.expand()
     }
 
+    describeChoice(tree, depth - (expansionQueue.size.toDouble() / currentDepthDenominator))
+
     return tree.root.bestEdge().edge
+  }
+
+  fun describeChoice(tree: MinimaxTree, depth: Double) {
+    logger.debug { "Depth: $depth" }
+    val topChoice = tree.root.bestEdge()
+
+    if (topChoice.node.score == Double.POSITIVE_INFINITY) {
+      logger.debug("${topChoice.edge} makes me win")
+      return
+    } else if (topChoice.node.score == Double.NEGATIVE_INFINITY) {
+      logger.debug("Basically I'm screwed lol")
+      return
+    }
+
+    val otherGoodChoices = tree.root.children!!.filter {
+      topChoice.node.score - it.node.score < 100
+    }
+    if (otherGoodChoices.isEmpty()) {
+      logger.debug("Went with choice ${topChoice.edge}. All the other choices were bad")
+    } else {
+      logger.debug("Went with choice ${topChoice.edge} (${topChoice.node.score}). But these choices were also good:\n")
+      for (choice in otherGoodChoices) {
+        logger.debug("${choice.node.score} | ${choice.edge}")
+      }
+    }
   }
 }
 
@@ -96,6 +133,7 @@ class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) 
         childrenBuilder.add(ChildRelationship(move, Node(state.takeMove(move), this, null)))
       }
       children = childrenBuilder.build()
+//      println("${children!!.size} children")
 
       recalculateScore()
     }

@@ -23,5 +23,6 @@ fun main(args: Array<String>) {
       valueFunction
   )
   val playerTwoAi = MinimaxPlayer(valueFunction)
-  winRate(playerOneAi, playerTwoAi, 10)
+  oneGame(playerOneAi, playerTwoAi)
+//  winRate(playerOneAi, playerTwoAi, 10)
 }
