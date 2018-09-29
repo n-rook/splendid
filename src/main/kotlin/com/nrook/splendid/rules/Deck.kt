@@ -7,8 +7,8 @@ import com.google.common.collect.Sets
 /**
  * A deck of development cards.
  *
- * For simplicity, right now, decks are deterministic. The card at the end of the list is the
- * card on top of the deck.
+ * Note that decks are ordered! If you want a random outcome, you will need to call
+ * "reorder" first.
  */
 data class Deck(val cards: ImmutableList<DevelopmentCard>) {
 

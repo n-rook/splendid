@@ -1,0 +1,25 @@
+
+-- Which player this is.
+-- Player 1 has ID 0. Player 2 has ID 1.
+CREATE TABLE IF NOT EXISTS Player(
+  id INTEGER PRIMARY KEY ASC
+);
+
+INSERT OR IGNORE INTO Player (id) VALUES (0);
+INSERT OR IGNORE INTO Player (id) VALUES (1);
+
+CREATE TABLE IF NOT EXISTS Ai(
+  id INTEGER PRIMARY KEY ASC,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Games(
+  id INTEGER PRIMARY KEY ASC,
+
+  playerOne INTEGER NOT NULL,
+  playerTwo INTEGER NOT NULL,
+  outcome,
+  FOREIGN KEY(playerOne) REFERENCES Ai(id),
+  FOREIGN KEY(playerTwo) REFERENCES Ai(id)
+);
+

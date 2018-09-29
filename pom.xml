@@ -74,6 +74,17 @@
             <artifactId>truth</artifactId>
             <version>0.42</version>
         </dependency>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.4.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.23.1</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.google.jimfs</groupId>
