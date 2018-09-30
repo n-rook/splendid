@@ -7,18 +7,10 @@ import com.nrook.splendid.database.mappers.AiMapper
 import com.nrook.splendid.database.mappers.AiRow
 import com.nrook.splendid.database.mappers.GameMapper
 import com.nrook.splendid.rules.Player
-import org.apache.ibatis.mapping.Environment
-import org.apache.ibatis.session.Configuration
 import org.apache.ibatis.session.SqlSessionFactory
-import org.apache.ibatis.session.SqlSessionFactoryBuilder
-import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory
-import org.sqlite.SQLiteConfig
-import org.sqlite.SQLiteDataSource
-import java.lang.Exception
-import java.lang.RuntimeException
-import java.lang.StringBuilder
 import java.nio.charset.Charset
-import java.sql.Connection
+import java.time.Instant
+import java.time.LocalDateTime
 
 /**
  * Controls access to the database. Use this class for everything.
@@ -83,10 +75,11 @@ class Database(private val sqlSessionFactory: SqlSessionFactory) {
     }
   }
 
-  fun recordGame(playerOne: AiIdentity, playerTwo: AiIdentity, winner: Player) {
+  fun recordGame(
+      playerOne: AiIdentity, playerTwo: AiIdentity, winner: Player, startTime: Instant) {
     sqlSessionFactory.openSession().use {
       it.getMapper(GameMapper::class.java)
-          .insertGame(playerOne.id, playerTwo.id, winner.ordinal)
+          .insertGame(playerOne.id, playerTwo.id, winner.ordinal, startTime.epochSecond)
       it.commit()
     }
   }

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS Games(
   playerOne INTEGER NOT NULL,
   playerTwo INTEGER NOT NULL,
   outcome INTEGER NOT NULL,
+  startTime INTEGER NOT NULL,  -- Seconds past the epoch
   FOREIGN KEY(playerOne) REFERENCES Ai(id),
   FOREIGN KEY(playerTwo) REFERENCES Ai(id)
   FOREIGN KEY(outcome) REFERENCES Player(id)
