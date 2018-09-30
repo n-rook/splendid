@@ -1,7 +1,5 @@
 package com.nrook.splendid.ai
 
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.rules.Game

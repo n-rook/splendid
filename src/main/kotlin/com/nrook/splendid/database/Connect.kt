@@ -34,6 +34,12 @@ fun main(args: Array<String>) {
   println(database.getGames(ais))
 }
 
+fun createProductionDatabase(): Database {
+  val database = Database(createSqlSessionFactory(getProductionDataSource()))
+  database.createTables()
+  return database
+}
+
 fun createSqlSessionFactory(dataSource: SQLiteDataSource): SqlSessionFactory {
   logger.info { "Connecting to database ${dataSource.url} "}
   val transactionFactory = JdbcTransactionFactory()

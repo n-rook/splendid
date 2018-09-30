@@ -9,7 +9,8 @@ import com.nrook.splendid.rules.Player
 class SelfPlayEngine(
     private val ais: ImmutableMap<Player, SynchronousAi>,
     private val shuffler: Shuffler,
-    private val reporter: Reporter) {
+    private val reporter: Reporter,
+    private val cutoff: Int?) {
 
   /**
    * Run self-play.
@@ -19,6 +20,11 @@ class SelfPlayEngine(
   fun run(initialState: Game): Player {
     var currentState: Game = initialState
     while (currentState.winner() == null) {
+      if (cutoff != null && currentState.turn.index > cutoff) {
+        // This game was a fiasco. Cutting off early and making an arbitrary player win.
+        return Player.ONE
+      }
+
       val nextMove = ais[currentState.turn.player]!!.selectMove(currentState)
       reporter.reportMove(currentState, nextMove)
       // Shuffle after the AI chooses a move, but before the move actually happens, so that

@@ -14,4 +14,11 @@ data class Turn(val index: Int, val player: Player) {
       Player.TWO -> Turn(index + 1, Player.ONE)
     }
   }
+
+  override fun toString(): String {
+    return when(player) {
+      Player.ONE -> index.toString()
+      Player.TWO -> "${index}x"
+    }
+  }
 }

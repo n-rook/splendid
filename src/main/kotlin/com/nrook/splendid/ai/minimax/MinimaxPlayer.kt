@@ -10,21 +10,19 @@ import com.nrook.splendid.rules.moves.Move
 import mu.KLogging
 import java.util.*
 
-private val OPS = 10000
-
 val logger = KLogging().logger("Minimax")
 
 /**
  * A player which uses a minimax algorithm to compute the best move.
  */
-class MinimaxPlayer(val valueFunction: ValueFunction): SynchronousAi {
+class MinimaxPlayer(val valueFunction: ValueFunction, private val ops: Int): SynchronousAi {
   override fun selectMove(game: Game): Move {
     val tree = MinimaxTree(game.turn.player, valueFunction, game)
 
     val expansionQueue = LinkedList<MinimaxTree.Node>(ImmutableList.of(tree.root))
     var depth = 0  // for logging only
     var currentDepthDenominator: Int = -1
-    for (i in 0..OPS) {
+    for (i in 0..ops) {
       if (expansionQueue.isEmpty()) {
         val toExpand = tree.root.getExpandableSelfOrDescendants()
         expansionQueue.addAll(toExpand)
