@@ -171,7 +171,7 @@ class MoveEvaluation(
         // Beta cutoff. An ancestor min node knows about a route that leads to a score of beta,
         // so there's no way it's going to choose this node.
         if (bestScore >= beta) {
-          logger.debug { "Beta cutoff: best score $bestScore is greater than $beta" }
+          logger.trace { "Beta cutoff: best score $bestScore is greater than $beta" }
            return EvaluationOutcome(bestMove!!, bestScore, isPerfect)
         }
       }
@@ -202,7 +202,7 @@ class MoveEvaluation(
         // Alpha cutoff. An ancestor max node knows about a route that leads to a score of alpha,
         // so there's no way it's going to choose this node, which has a score less than alpha.
         if (bestScore <= alpha) {
-          logger.debug { "Alpha cutoff: best score $bestScore is less than $alpha" }
+          logger.trace { "Alpha cutoff: best score $bestScore is less than $alpha" }
           return EvaluationOutcome(bestMove!!, bestScore, isPerfect)
         }
       }
