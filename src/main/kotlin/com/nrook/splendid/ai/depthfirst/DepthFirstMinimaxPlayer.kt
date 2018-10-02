@@ -1,12 +1,19 @@
 package com.nrook.splendid.ai.depthfirst
 
+import com.google.common.collect.ImmutableMap
 import com.nrook.splendid.ai.ValueFunction
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.rules.Game
 import com.nrook.splendid.rules.Player
+import com.nrook.splendid.rules.moves.BuyDevelopment
+import com.nrook.splendid.rules.moves.DoNothing
 import com.nrook.splendid.rules.moves.Move
+import com.nrook.splendid.rules.moves.ReserveDevelopment
+import com.nrook.splendid.rules.moves.TakeTokens
 import mu.KLogging
 import java.lang.RuntimeException
+import kotlin.math.max
+import kotlin.math.min
 
 private val logger = KLogging().logger("Depth-First ID Minimax")
 
@@ -88,6 +95,10 @@ class MoveEvaluation(
      * Compute score. May construct child nodes. Or not.
      */
     fun computeScore(): EvaluationOutcome {
+      return computeScore(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)
+    }
+
+    fun computeScore(alpha: Double, beta: Double): EvaluationOutcome {
       if (state.winner() != null) {
         return if (state.winner() == me) {
           EvaluationOutcome(null, Double.POSITIVE_INFINITY, true)
@@ -97,33 +108,71 @@ class MoveEvaluation(
       }
 
       if (remainingDepth > 0) {
-        return expand()
+        return expand(alpha, beta)
       } else {
         return EvaluationOutcome(null, evaluate(), false)
       }
     }
 
-    fun expand(): EvaluationOutcome {
+    /**
+     * Expand.
+     *
+     * On a max node, the following rules apply:
+     *
+     * "beta" is the upper bound for scores. Beta is the minimum score we've found at a sibling
+     * node. If this node actually has a score higher than beta, the parent node (which is a min
+     * node) will choose that other node with beta as its child, rather than choosing this node,
+     * so we can return early.
+     *
+     * "alpha" is the lower bound for scores. On a max node, we don't use alpha directly. Rather, we
+     * keep track of the maximum score we see in our child nodes. We pass that to our children
+     * when they are evaluated, and call it alpha.
+     *
+     * (Actually, sometimes alpha is set in a previous max node, and gets passed in here. In this
+     * case, it can cut off a child min node's computation from far away.)
+     *
+     * On a min node, the reverse rules apply. We directly use "alpha", which is the highest score
+     * we've seen from a child at the parent max node. If we see that this node will evaluate to a
+     * score lower than alpha, we know the parent will just use the node with alpha as its score
+     * instead, so we return early.
+     *
+     * And similarly, we keep track of beta as the maximum score we see in our children. Our
+     * children know that if they have a score higher than beta, there is no point in continuing
+     * to evaluate, because we will just choose the beta node.
+     *
+     */
+    fun expand(alpha: Double, beta: Double): EvaluationOutcome {
       return when (this.nodeType) {
-        NodeType.MAX_NODE -> expandMax()
-        NodeType.MIN_NODE -> expandMin()
+        NodeType.MAX_NODE -> expandMax(alpha, beta)
+        NodeType.MIN_NODE -> expandMin(alpha, beta)
       }
     }
 
     // Find the move with the highest score.
-    fun expandMax(): EvaluationOutcome {
+    fun expandMax(alpha: Double, beta: Double): EvaluationOutcome {
       var bestMove: Move? = null
       var bestScore = Double.NEGATIVE_INFINITY
       var isPerfect = true
 
       for ((move, outcome) in movesAndOutcomes()) {
         val node = Node(outcome, remainingDepth - 1)
-        val evaluation = node.computeScore()
+        val evaluation = node.computeScore(
+            max(alpha, bestScore),
+            beta
+        )
         val nodeScore = evaluation.score
         isPerfect = isPerfect && evaluation.perfect
+
         if (nodeScore >= bestScore) {
           bestScore = nodeScore
           bestMove = move
+        }
+
+        // Beta cutoff. An ancestor min node knows about a route that leads to a score of beta,
+        // so there's no way it's going to choose this node.
+        if (bestScore >= beta) {
+          logger.debug { "Beta cutoff: best score $bestScore is greater than $beta" }
+           return EvaluationOutcome(bestMove!!, bestScore, isPerfect)
         }
       }
 
@@ -131,19 +180,30 @@ class MoveEvaluation(
     }
 
     // Find the move with the lowest score.
-    fun expandMin(): EvaluationOutcome {
+    fun expandMin(alpha: Double, beta: Double): EvaluationOutcome {
       var bestMove: Move? = null
       var bestScore = Double.POSITIVE_INFINITY
       var isPerfect = true
 
       for ((move, outcome) in movesAndOutcomes()) {
         val node = Node(outcome, remainingDepth - 1)
-        val evaluation = node.computeScore()
+        val evaluation = node.computeScore(
+            alpha,
+            min(beta, bestScore)
+        )
         val nodeScore = evaluation.score
         isPerfect = isPerfect && evaluation.perfect
+
         if (nodeScore <= bestScore) {
           bestScore = nodeScore
           bestMove = move
+        }
+
+        // Alpha cutoff. An ancestor max node knows about a route that leads to a score of alpha,
+        // so there's no way it's going to choose this node, which has a score less than alpha.
+        if (bestScore <= alpha) {
+          logger.debug { "Alpha cutoff: best score $bestScore is less than $alpha" }
+          return EvaluationOutcome(bestMove!!, bestScore, isPerfect)
         }
       }
 
@@ -158,10 +218,22 @@ class MoveEvaluation(
     }
 
     fun movesAndOutcomes(): Iterable<MoveAndOutcome> {
-      return state.moves().map { MoveAndOutcome(it, state.takeMove(it)) }
+      // Smart ordering!
+      // In general, buying development moves are the best.
+      // This also gets it away from styling on the opponent.
+
+      return state.moves().sortedByDescending {
+        MOVE_TYPE_PRIORITY[it::class.java]
+      }.map { MoveAndOutcome(it, state.takeMove(it)) }
     }
   }
 }
+
+private val MOVE_TYPE_PRIORITY = ImmutableMap.of<Class<*>, Int>(
+    TakeTokens::class.java, 2,
+    ReserveDevelopment::class.java, 1,
+    BuyDevelopment::class.java, 3,
+    DoNothing::class.java, 0)
 
 data class MoveAndOutcome(val move: Move, val outcome: Game)
 

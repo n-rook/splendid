@@ -10,7 +10,8 @@ import com.nrook.splendid.ai.minimax.MinimaxPlayer
 import java.util.*
 
 fun main(args: Array<String>) {
-  winRate(MINIMAX_1K_MARK_1_VF1.ai, TEMP_DFS_MINIMAX.ai, 10)
+  winRate(MINIMAX_10K_MARK_1_VF1.ai, TEMP_DFS_ALPHA_BETA.ai, 10)
+//  doSelfPlayForever()
 }
 
 fun doSelfPlayForever() {
@@ -20,5 +21,6 @@ fun doSelfPlayForever() {
       MINIMAX_10K_MARK_1_VF1,
       MINIMAX_1K_MARK_1_VF1,
       X10_SHUFFLER_MINIMAX_1K_MARK_1K_VF1
+//      DFS_NO_ALPHA_BETA_1K_MARK_1_VF1
   ))
 }

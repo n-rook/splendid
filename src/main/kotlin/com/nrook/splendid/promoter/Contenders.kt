@@ -43,4 +43,10 @@ val X10_SHUFFLER_MINIMAX_1K_MARK_1K_VF1 = NamedPlayer(
 )
 
 val TEMP_DFS_MINIMAX = NamedPlayer(
-    DepthFirstMinimaxPlayer(VALUE_FUNCTION_ONE, 1000), "Temp DFS Player")
+    DepthFirstMinimaxPlayer(VALUE_FUNCTION_ONE, 10000), "Temp DFS Player")
+
+//val DFS_NO_ALPHA_BETA_1K_MARK_1_VF1 = NamedPlayer(
+//    DepthFirstMinimaxPlayer(VALUE_FUNCTION_ONE, 1000), "DFS No Alpha Beta 1K Mark 1 VF1")
+
+val TEMP_DFS_ALPHA_BETA = NamedPlayer(
+    DepthFirstMinimaxPlayer(VALUE_FUNCTION_ONE, 1000), "Temp DFS Alpha Beta")
