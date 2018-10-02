@@ -44,7 +44,7 @@ fun oneGame(playerOne: SynchronousAi, playerTwo: SynchronousAi) {
 fun winRate(playerOne: SynchronousAi, playerTwo: SynchronousAi, games: Int) {
   val random = Random()
   val components = loadComponentsFromFile()
-  val reporter = NullReporter()
+  val reporter = ConsoleShortReporter()
   val engine = SelfPlayEngine(
       ImmutableMap.of(Player.ONE, playerOne, Player.TWO, playerTwo),
       RandomShuffler(random),
@@ -67,7 +67,7 @@ fun winRate(playerOne: SynchronousAi, playerTwo: SynchronousAi, games: Int) {
   print("Win rate: $winrate (${outcomes.count(Player.ONE)} to ${outcomes.count(Player.TWO)})")
 }
 
-private const val SELF_PLAY_FOREVER_PARALLEL_GAMES = 2
+private const val SELF_PLAY_FOREVER_PARALLEL_GAMES = 4
 
 fun selfPlayForever(players: ImmutableList<NamedPlayer>) {
   val components = loadComponentsFromFile()

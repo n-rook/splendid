@@ -5,7 +5,9 @@ import com.nrook.splendid.ai.DirectValuePlayer
 import com.nrook.splendid.ai.GeneralFeature
 import com.nrook.splendid.ai.PlayerSpecificFeature
 import com.nrook.splendid.ai.RandomPlayer
+import com.nrook.splendid.ai.TopLevelShuffingPlayer
 import com.nrook.splendid.ai.ValueFunction
+import com.nrook.splendid.ai.depthfirst.DepthFirstMinimaxPlayer
 import com.nrook.splendid.ai.minimax.MinimaxPlayer
 import java.util.*
 
@@ -32,3 +34,13 @@ val MINIMAX_10K_MARK_1_VF1 = NamedPlayer(
 
 val MINIMAX_1K_MARK_1_VF1 = NamedPlayer(
     MinimaxPlayer(VALUE_FUNCTION_ONE, 1000), "Minimax 1K Mark 1 VF1")
+
+val X10_SHUFFLER_MINIMAX_1K_MARK_1K_VF1 = NamedPlayer(
+    TopLevelShuffingPlayer.createFromCopies(random, 10) {
+      MINIMAX_1K_MARK_1_VF1.ai
+    },
+    "10X Shuffler ${MINIMAX_1K_MARK_1_VF1.name}"
+)
+
+val TEMP_DFS_MINIMAX = NamedPlayer(
+    DepthFirstMinimaxPlayer(VALUE_FUNCTION_ONE, 1000), "Temp DFS Player")

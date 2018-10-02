@@ -10,28 +10,15 @@ import com.nrook.splendid.ai.minimax.MinimaxPlayer
 import java.util.*
 
 fun main(args: Array<String>) {
+  winRate(MINIMAX_1K_MARK_1_VF1.ai, TEMP_DFS_MINIMAX.ai, 10)
+}
 
+fun doSelfPlayForever() {
   selfPlayForever(ImmutableList.of(
-      RANDOM_PLAYER,
+//      RANDOM_PLAYER,
       DIRECT_VF1,
       MINIMAX_10K_MARK_1_VF1,
-      MINIMAX_1K_MARK_1_VF1
+      MINIMAX_1K_MARK_1_VF1,
+      X10_SHUFFLER_MINIMAX_1K_MARK_1K_VF1
   ))
-
-//  val random = Random()
-//  val valueFunction = ValueFunction(
-//      ImmutableMap.of(
-//          PlayerSpecificFeature.VICTORY_POINTS, 100.0,
-//          PlayerSpecificFeature.DEVELOPMENTS, 10.0,  // won vs 100
-//          PlayerSpecificFeature.CHIPS, 1.0,
-//          GeneralFeature.SECOND_PLAYER_EXTRA_TURN_BONUS, 5.0
-//      )
-//  )
-//  val playerOneAi = DirectValuePlayer(
-//      random,
-//      valueFunction
-//  )
-//  val playerTwoAi = MinimaxPlayer(valueFunction)
-//  oneGame(playerOneAi, playerTwoAi)
-//  winRate(playerOneAi, playerTwoAi, 10)
 }

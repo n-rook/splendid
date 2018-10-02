@@ -10,7 +10,7 @@ import com.nrook.splendid.rules.moves.Move
 import mu.KLogging
 import java.util.*
 
-val logger = KLogging().logger("Minimax")
+private val logger = KLogging().logger("Minimax")
 
 /**
  * A player which uses a minimax algorithm to compute the best move.
@@ -87,7 +87,7 @@ class MinimaxPlayer(val valueFunction: ValueFunction, private val ops: Int): Syn
   }
 }
 
-class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) {
+private class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) {
   val root: Node
 
   init {
@@ -152,7 +152,7 @@ class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) 
     // Compute children, and get score based on them.
     fun expand() {
       if (gameOver) {
-        throw Error("Cannot expand node; game is over")
+        throw Error("Cannot expand node; rootState is over")
       }
 
       val childrenBuilder = ImmutableList.builder<ChildRelationship>()
@@ -218,7 +218,7 @@ class MinimaxTree(val me: Player, val valueFunction: ValueFunction, game: Game) 
 }
 
 
-enum class NodeType {
+private enum class NodeType {
   /**
    * On this node, it is our turn, so we should try to maximize our score.
    */
