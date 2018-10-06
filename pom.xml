@@ -15,9 +15,25 @@
         <kotlin.version>1.2.20</kotlin.version>
         <junit.version>4.12</junit.version>
         <grpc.version>1.0.3</grpc.version>
+        <ktor.version>0.9.5</ktor.version>
         <ai.class>com.nrook.splendid.AiServerEntryPointKt</ai.class>
         <promoter.class>com.nrook.splendid.PromoterEntryPointKt</promoter.class>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>ktor</id>
+            <url>http://dl.bintray.com/kotlin/ktor</url>
+        </repository>
+        <repository>
+            <id>kotlinx</id>
+            <url>http://dl.bintray.com/kotlin/kotlinx</url>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -85,6 +101,21 @@
             <version>3.23.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.30.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-core</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-server-netty</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.jimfs</groupId>
@@ -112,6 +143,7 @@
     </dependencies>
 
     <build>
+
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
 
