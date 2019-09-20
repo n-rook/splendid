@@ -25,6 +25,10 @@ data class Game(
     val nobles: ImmutableSet<Noble>,
     val chips: ImmutableMultiset<ChipColor>,
     val tableaux: ImmutableMap<Player, Tableau>) {
+
+  /**
+   * Returns who won. If null, the game is not over yet.
+   */
   fun winner(): Player? {
     // In Splendor, play continues until all players have played the same number of rounds.
     if (turn.player == Player.TWO) {
@@ -165,6 +169,9 @@ data class Game(
         .build()
   }
 
+  /**
+   * Make a move as the current player. Returns a new Game with the new move taken.
+   */
   fun takeMove(move: Move): Game {
     val theWinner = winner()
     if (theWinner != null) {
@@ -249,7 +256,6 @@ data class Game(
       Multisets.difference(chips, ImmutableMultiset.of(ChipColor.GOLD))
     else chips
 
-
     // I forgot to give you the gold!
     return Game(
         turn.next(),
@@ -303,6 +309,9 @@ data class Game(
   }
 }
 
+/**
+ * Construct a new Game given already-selected random parameters.
+ */
 fun setupNewGame(
     startingDevelopments: ImmutableSetMultimap<Row, DevelopmentCard>,
     remainingDevelopments: ImmutableListMultimap<Row, DevelopmentCard>,
@@ -332,6 +341,9 @@ fun setupNewGame(
   )
 }
 
+/**
+ * The starting chips in the bank in a normal game of Splendor.
+ */
 val STARTING_CHIPS: ImmutableMultiset<ChipColor> = run {
   val builder: ImmutableMultiset.Builder<ChipColor> = ImmutableMultiset.builder()
   for (color in ChipColor.values()) {

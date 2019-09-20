@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.io.Resources
 import com.nrook.splendid.database.mappers.AiMapper
 import com.nrook.splendid.database.mappers.AiRow
-import com.nrook.splendid.database.mappers.GameMapper
+import com.nrook.splendid.database.mappers.TrainingGameRecordMapper
 import com.nrook.splendid.rules.Player
 import org.apache.ibatis.session.SqlSessionFactory
 import java.nio.charset.Charset
@@ -77,17 +77,17 @@ class Database(private val sqlSessionFactory: SqlSessionFactory) {
   fun recordGame(
       playerOne: AiIdentity, playerTwo: AiIdentity, winner: Player, startTime: Instant) {
     sqlSessionFactory.openSession().use {
-      it.getMapper(GameMapper::class.java)
+      it.getMapper(TrainingGameRecordMapper::class.java)
           .insertGame(playerOne.id, playerTwo.id, winner.ordinal, startTime.epochSecond)
       it.commit()
     }
   }
 
-  fun getGames(aiMap: Map<Int, AiIdentity>): ImmutableList<Game> {
+  fun getGames(aiMap: Map<Int, AiIdentity>): ImmutableList<TrainingGameRecord> {
     sqlSessionFactory.openSession().use { session ->
       return ImmutableList.copyOf(
-          session.getMapper(GameMapper::class.java).selectAllGames()
-          .map { Game.create(it, aiMap) })
+          session.getMapper(TrainingGameRecordMapper::class.java).selectAllGames()
+          .map { TrainingGameRecord.create(it, aiMap) })
     }
   }
 }

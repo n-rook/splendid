@@ -1,7 +1,7 @@
 package com.nrook.splendid.database
 
 import com.nrook.splendid.database.mappers.AiMapper
-import com.nrook.splendid.database.mappers.GameMapper
+import com.nrook.splendid.database.mappers.TrainingGameRecordMapper
 import com.nrook.splendid.rules.Player
 import mu.KLogging
 import org.apache.ibatis.mapping.Environment
@@ -46,7 +46,7 @@ fun createSqlSessionFactory(dataSource: SQLiteDataSource): SqlSessionFactory {
   val environment = Environment("hello", transactionFactory, dataSource)
   val configuration = Configuration(environment)
   configuration.addMapper(AiMapper::class.java)
-  configuration.addMapper(GameMapper::class.java)
+  configuration.addMapper(TrainingGameRecordMapper::class.java)
 
   return SqlSessionFactoryBuilder().build(configuration)!!
 }
