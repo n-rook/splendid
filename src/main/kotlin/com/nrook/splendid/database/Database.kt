@@ -16,8 +16,22 @@ import java.time.Instant
  */
 class Database(private val sqlSessionFactory: SqlSessionFactory) {
 
+  /**
+   * Create tables using create.sql for the first time.
+   */
   fun createTables() {
-    val resource = Resources.getResource("tables/create.sql")
+    runScript("tables/create.sql")
+  }
+
+  /**
+   * Deletes all mutable data. Does not delete table from create.sql. Useful for tests only.
+   */
+  fun deleteAllData() {
+    runScript("tables/clear.sql")
+  }
+
+  private fun runScript(scriptPath: String) {
+    val resource = Resources.getResource(scriptPath)
     val sql = Resources.readLines(resource, Charset.forName("UTF-8"))
     val sqlStatements = splitIntoStatements(sql)
 
@@ -26,7 +40,8 @@ class Database(private val sqlSessionFactory: SqlSessionFactory) {
         try {
           it.connection.createStatement().execute(statement)
         } catch (e: Exception) {
-          throw RuntimeException("Error executing statement\n$statement", e)
+          throw RuntimeException(
+              "Error executing statement\n$statement \nfrom script$scriptPath", e)
         }
       }
     }
@@ -74,6 +89,9 @@ class Database(private val sqlSessionFactory: SqlSessionFactory) {
     }
   }
 
+  /**
+   * Record the outcome of a training game.
+   */
   fun recordGame(
       playerOne: AiIdentity, playerTwo: AiIdentity, winner: Player, startTime: Instant) {
     sqlSessionFactory.openSession().use {

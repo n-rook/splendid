@@ -13,7 +13,14 @@
 --
 -- User-facing stuff (not yet implemented)
 -- Game. Represents a (possibly ongoing) game.
--- 
+-- GameState: Represents the state of a game on a given turn. Unique across "game" and "turn".
+-- Note that P1's turn is represented as "1" and P2's as "1x", so there will have to be two
+-- columns for turn. The latest GameState for a game is the current state.
+
+-- RowDevelopment: A development on a row. Uses "DevelopmentId".
+-- ChipCount: Number of chips of a color possessed by a player.
+-- ReservedDevelopment: Reserved development. Add a column for whether it's public or not.
+-- Noble: A noble available. Include a row for who owns them-- P1/P2/nobody.
 
 -- Which player this is.
 -- Player 1 has ID 0. Player 2 has ID 1.

@@ -1,30 +1,21 @@
 package com.nrook.splendid.database
 
-import com.google.common.io.MoreFiles
-import com.google.common.io.RecursiveDeleteOption
 import com.google.common.truth.Truth
+import com.nrook.splendid.database.testing.createTestDb
 import com.nrook.splendid.rules.Player
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class DatabaseTest {
 
   lateinit var database: Database
-  lateinit var tempDirectory: Path
 
   @Before
   fun before() {
-    tempDirectory = Files.createTempDirectory("database")
-    val databaseFile = tempDirectory.resolve("temp.db")
-
-    val dataSource = getFileDataSource(databaseFile)
-    database = Database(createSqlSessionFactory(dataSource))
-    database.createTables()
+    database = createTestDb()
   }
 
   @After
@@ -62,5 +53,14 @@ class DatabaseTest {
     Truth.assertThat(game.playerTwo).isEqualTo(second)
     Truth.assertThat(game.outcome).isEqualTo(Player.ONE)
     Truth.assertThat(game.time).isEqualTo(gameTime)
+  }
+
+  @Test
+  fun deleteAllDataDeletesAi() {
+    database.recordAi("first")
+    Truth.assertThat(database.getAiByName("first")).isNotNull()
+
+    database.deleteAllData()
+    Truth.assertThat(database.getAiByName("first")).isNull()
   }
 }
