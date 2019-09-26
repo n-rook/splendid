@@ -6,7 +6,7 @@ import java.time.Instant
 
 data class TrainingGameRecord(val playerOne: AiIdentity, val playerTwo: AiIdentity, val outcome: Player, val time: Instant) {
   companion object {
-    fun create(game: TrainingGameRecordDao, aiMap: Map<Int, AiIdentity>): com.nrook.splendid.database.TrainingGameRecord {
+    fun create(game: TrainingGameRecordDao, aiMap: Map<Int, AiIdentity>): TrainingGameRecord {
       return TrainingGameRecord(
           aiMap[game.playerOne] ?: throw Error("No known AI ${game.playerOne}"),
           aiMap[game.playerTwo] ?: throw Error("No known AI ${game.playerTwo}"),

@@ -9,12 +9,14 @@ import org.junit.Test
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
+val SOME_INSTANT = LocalDateTime.of(2018, 1, 1, 12, 0).toInstant(ZoneOffset.UTC)
+
 class DatabaseTest {
 
   lateinit var database: Database
 
   @Before
-  fun before() {
+  fun createTestDatabase() {
     database = createTestDb()
   }
 
@@ -44,9 +46,9 @@ class DatabaseTest {
 
     val gameTime = LocalDateTime.of(2018, 1, 1, 12, 0).toInstant(ZoneOffset.UTC)
 
-    database.recordGame(first, second, Player.ONE, gameTime)
+    database.recordTrainingGameRecord(first, second, Player.ONE, gameTime)
 
-    val games = database.getGames(ais)
+    val games = database.getTrainingGameRecords(ais)
     Truth.assertThat(games).hasSize(1)
     val game = games[0]!!
     Truth.assertThat(game.playerOne).isEqualTo(first)
@@ -62,5 +64,25 @@ class DatabaseTest {
 
     database.deleteAllData()
     Truth.assertThat(database.getAiByName("first")).isNull()
+  }
+
+  @Test
+  fun createNewGame() {
+    database.createUserAccount("Some User!")
+    val account = database.lookUpUserAccountByName("Some User!")!!;
+    database.recordAi("Some Ai!");
+    val ai = database.getAiByName("Some Ai!")!!
+
+
+    val id = database.createNewGame(account, null, null, ai.id, SOME_INSTANT)
+
+    val game = database.getGameById(id);
+
+    Truth.assertThat(game.id).isEqualTo(id);
+    Truth.assertThat(game.playerOneUser?.name).isEqualTo("Some User!")
+    Truth.assertThat(game.playerOneAi).isNull()
+    Truth.assertThat(game.playerTwoUser).isNull()
+    Truth.assertThat(game.playerTwoAi).isEqualTo(ai.id)
+    Truth.assertThat(game.startTime).isEqualTo(SOME_INSTANT)
   }
 }

@@ -12,7 +12,6 @@ import com.nrook.splendid.engine.SelfPlayEngine
 import com.nrook.splendid.engine.SynchronousAi
 import com.nrook.splendid.reporting.ConsoleReporter
 import com.nrook.splendid.reporting.ConsoleShortReporter
-import com.nrook.splendid.reporting.NullReporter
 import com.nrook.splendid.reporting.Reporter
 import com.nrook.splendid.rules.Player
 import com.nrook.splendid.rules.cards.GameComponents
@@ -107,7 +106,7 @@ private fun runParallelGames(
         CUTOFF)
     val victor = engine.run(components.startGame(random))
     println("The winner is ${if (victor == Player.ONE) playerOne.name else playerTwo.name}")
-    db.recordGame(
+    db.recordTrainingGameRecord(
         nameToPlayer[playerOne.name]!!, nameToPlayer[playerTwo.name]!!, victor, startTime)
 
     printEloFromDatabase(db)

@@ -8,7 +8,7 @@ import com.nrook.splendid.rating.Record
 
 fun computeEloFromDatabase(db: Database): ImmutableMap<AiIdentity, Record> {
   val ais = db.getAis()
-  val games = db.getGames(ais)
+  val games = db.getTrainingGameRecords(ais)
   val ratings = Ratings()
 
   for (game in games) {
